@@ -1,0 +1,4028 @@
+Index: solr/contrib/xjoin/README.txt
+===================================================================
+--- solr/contrib/xjoin/README.txt	(revision 0)
++++ solr/contrib/xjoin/README.txt	(working copy)
+@@ -0,0 +1,154 @@
++h2. XJoin
++
++The "xjoin" SOLR contrib allows external results to be joined with SOLR results in a query and the SOLR result set to be filtered by the results of an external query. Values from the external results are made available in the SOLR results and may also be used to boost the scores of corresponding documents during the search. The contrib consists of the Java classes XJoinSearchComponent and XJoinValueSourceParser, which must be configured in solrconfig.xml, and the interfaces XJoinResultsFactory and XJoinResults, which are implemented by the user to provide the link between SOLR and the external results source. External results and SOLR documents are matched via a single configurable attribute (the "join field"). The contrib JAR solr-xjoin-4.10.3.jar contains these classes and interfaces and should be included in SOLR's class path from solrconfig.xml, as should a JAR containing the user implementations of the previously mentioned interfaces. For example:
++
++{code:xml}
++<config>
++  ..
++  <!-- XJoin contrib JAR file -->
++  <lib dir="${solr.install.dir:../../..}/dist/" regex="solr-xjoin-\d.*\.jar" />
++  ..
++  <!-- user implementations of XJoin interfaces -->
++  <lib path="/path/to/xjoin_test.jar" />
++  ..
++</config>
++{code}
++
++h2. Java classes and interfaces
++
++h3. XJoinResultsFactory
++
++The user implementation of this interface is responsible for connecting to the external source to perform a query (or otherwise collect results). Parameters with prefix "<component name>.external." are passed from the SOLR query URL to pararameterise the search. The interface has the following methods:
++
++* void init(NamedList args) - this is called during SOLR initialisation, and passed parameters from the search component configuration (see below)
++* XJoinResults getResults(SolrParams params) - this is called during a SOLR search to generate external results, and is passed parameters from the SOLR query URL (as above)
++
++For example, the implementation might perform queries of an external source based on the 'q' SOLR query URL parameter (in full, <component name>.external.q).
++
++h3. XJoinResults
++A user implementation of this interface is returned by the getResults() method of the XJoinResultsFactory implementation. It has methods:
++
++* Object getResult(String joinId) - this should return a particular result given the value of the join attribute
++* Iterable<String> getJoinIds() - this should return the join attribute values for all results of the external search
++
++h3. XJoinSearchComponent
++
++This is the central Java class of the contrib. It is a SOLR search component, configured in solrconfig.xml and included in one or more SOLR request handlers. It has two main responsibilities:
++
++* Before the SOLR search, it connects to the external source and retrieves results, storing them in the SOLR request context
++* After the SOLR search, it matches SOLR document in the results set and external results via the join field, adding attributes from the external results to documents in the SOLR results set
++
++It takes the following initialisation parameters:
++
++* factoryClass - this specifies the user-supplied class implementing XJoinResultsFactory, used to generate external results
++* joinField - this specifies the attribute on which to join between SOLR documents and external results
++* external - this parameter set is passed to configure the XJoinResultsFactory implementation
++
++For example, in solrconfig.xml:
++
++{code:xml}
++<searchComponent name="xjoin_test" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++  <str name="factoryClass">test.TestXJoinResultsFactory</str>
++  <str name="joinField">id</str>
++  <lst name="external">
++    <str name="values">1,2,3</str>
++  </lst>
++</searchComponent>
++{code}
++
++Here, the search component instantiates a new TextXJoinResultsFactory during initialisation, and passes it the "values" parameter (1, 2, 3) to configure it. To properly use the XJoinSearchComponent in a request handler, it must be included at the start and end of the component list, and may be configured with the following query parameters:
++
++* results - a comma-separated list of attributes from the XJoinResults implementation (created by the factory at search time) to be included in the SOLR results
++* fl - a comma-separated list of attributes from results objects (contained in an XJoinResults implementation) to be included in the SOLR results
++
++For example:
++{code:xml}
++<requestHandler name="/xjoin" class="solr.SearchHandler" startup="lazy">
++  <lst name="defaults">
++    ..
++    <bool name="xjoin_test">true</bool>
++    <str name="xjoin_test.listParameter">xx</str>
++    <str name="xjoin_test.results">test_count</str>
++    <str name="xjoin_test.fl">id,value</str>
++  </lst>
++  <arr name="first-components">
++    <str>xjoin_test</str>
++  </arr>
++  <arr name="last-components">
++    <str>xjoin_test</str>
++  </arr>
++</requestHandler>
++{code}
++
++h3. XJoinQParserPlugin
++
++This query parser plugin constructs a query from the resulting join ids from the external search, and is very similar to the TermsQParserPlugin. It takes no parameters, and the value to be parsed is the name of the XJoin search component that contains the results.
++
++h3. XJoinValueSourceParser
++
++This class provides a SOLR function that may be used, for example, in a boost function to weight the result score from external values. The function returns an attribute value from the external result with matching join attribute. The external attribute returned is specified by the argument of the function specification in the SOLR query URL (see below). The parameters for configuration in solrconfig.xml are:
++
++* xJoinSearchComponent - the name of the XJoin search component containing the external results
++* defaultValue - if the external result has no such attribute, then this value is returned
++
++For example:
++{code:xml}
++<valueSourceParser name="test_fn" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
++  <str name="xJoinSearchComponent">xjoin_test</str>
++  <double name="defaultValue">1.0</double>
++</valueSourceParser>
++{code}
++
++h3. Mapping between attributes and Java methods
++
++Java method names are converted into attribute (field) names by stripping the initial "get" or "is" and converting the remainder from CamelCase to lowercase-with-underscores, and vice versa. For example, getScore() <-> score or getFooBar() <-> foo_bar.
++
++The field list parameter of XJoinSearchComponent (fl) can be given as *, in which case all methods beginning 'get' or 'is' are converted into fields in the SOLR result for the document.
++
++h2. Putting it together - the SOLR query URL
++
++Here is an example SOLR query URL to perform an xjoin:
++
++{noformat}
++http://solrserver:8983/solr/collection1/xjoin?defType=edismax&q=*:*&xjoin_test.external.q=foobar&fl=id,score&fq={!xjoin}xjoin_test&bf=test_fn(value)
++{noformat}
++
++This might result in the following SOLR response:
++
++{code:xml}
++<?xml version="1.0" encoding="UTF-8"?>
++<response>
++  <lst name="responseHeader">
++    <int name="status">0</int>
++    <int name="QTime">346</int>
++    <lst name="params">
++      ..
++    </lst>
++  </lst>
++  <result name="response" numFound="2" start="0" maxScore="58.60105">
++    <doc>
++      <str name="id">document1</str>
++      <float name="score">58.60105</float>
++    </doc>
++    <doc>
++      <str name="id">document2</str>
++      <float name="score">14.260552</float>
++    </doc>
++  </result>
++  <lst name="xjoin_test">
++    <int name="test_count">145</int>
++    <lst name="doc">
++      <str name="id">document1</str>
++      <double name="value">7.4</double>
++    </lst>
++    <lst name="doc">
++      <str name="id">document2</str>
++      <double name="value">2.3</double>
++    </lst>
++  </lst>
++</response>
++{code}
++
++Notes:
++* The actual 'join' is specified by the fq parameter. See XJoinQParserPlugin above.
++* The function test_fn is used in the bf score-boost function. Since the argument is value2, that attribute of the external results is used as the score boost.
+
+Property changes on: solr/contrib/xjoin/README.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/build.xml
+===================================================================
+--- solr/contrib/xjoin/build.xml	(revision 0)
++++ solr/contrib/xjoin/build.xml	(working copy)
+@@ -0,0 +1,42 @@
++<?xml version="1.0"?>
++
++<!--
++    Licensed to the Apache Software Foundation (ASF) under one or more
++    contributor license agreements.  See the NOTICE file distributed with
++    this work for additional information regarding copyright ownership.
++    The ASF licenses this file to You under the Apache License, Version 2.0
++    the "License"); you may not use this file except in compliance with
++    the License.  You may obtain a copy of the License at
++ 
++        http://www.apache.org/licenses/LICENSE-2.0
++ 
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++ -->
++
++<project name="solr-xjoin" default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
++
++  <description>
++    XJoin (external source join)
++  </description>
++
++  <property name="test.lib.dir" location="test-lib"/>
++
++  <import file="../contrib-build.xml"/>
++
++  <path id="test.classpath">
++    <path refid="solr.test.base.classpath"/>
++    <fileset dir="${test.lib.dir}" includes="*.jar"/>
++  </path>
++
++  <target name="resolve" depends="ivy-availability-check,ivy-fail,ivy-configure">
++    <sequential>
++      <ivy:retrieve conf="compile" type="jar,bundle" sync="${ivy.sync}" log="download-only"/>
++      <ivy:retrieve conf="test" type="jar,bundle,test" sync="${ivy.sync}" log="download-only"
++                    pattern="${test.lib.dir}/[artifact]-[revision](-[classifier]).[ext]"/>
++    </sequential>
++  </target>
++</project>
+
+Property changes on: solr/contrib/xjoin/build.xml
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/ivy.xml
+===================================================================
+--- solr/contrib/xjoin/ivy.xml	(revision 0)
++++ solr/contrib/xjoin/ivy.xml	(working copy)
+@@ -0,0 +1,32 @@
++<!--
++   Licensed to the Apache Software Foundation (ASF) under one
++   or more contributor license agreements.  See the NOTICE file
++   distributed with this work for additional information
++   regarding copyright ownership.  The ASF licenses this file
++   to you under the Apache License, Version 2.0 (the
++   "License"); you may not use this file except in compliance
++   with the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing,
++   software distributed under the License is distributed on an
++   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++   KIND, either express or implied.  See the License for the
++   specific language governing permissions and limitations
++   under the License.    
++-->
++<ivy-module version="2.0">
++  <info organisation="org.apache.solr" module="xjoin"/>
++  <configurations defaultconfmapping="compile->master;test->master">
++    <conf name="compile" transitive="false"/>
++    <conf name="test" transitive="false"/>
++  </configurations>
++  <dependencies>
++    <dependency org="commons-collections" name="commons-collections" rev="${/commons-collections/commons-collections}" conf="compile"/>
++    <dependency org="org.objenesis" name="objenesis" rev="${/org.objenesis/objenesis}" conf="test" />
++    <dependency org="org.mockito" name="mockito-core" rev="${/org.mockito/mockito-core}" conf="test" />
++    <dependency org="org.slf4j" name="jcl-over-slf4j" rev="${/org.slf4j/jcl-over-slf4j}" conf="test"/>
++    <exclude org="*" ext="*" matcher="regexp" type="${ivy.exclude.types}"/>
++  </dependencies>
++</ivy-module>
+
+Property changes on: solr/contrib/xjoin/ivy.xml
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/Combinations.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/Combinations.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/Combinations.java	(working copy)
+@@ -0,0 +1,194 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.util.Iterator;
++import java.util.NoSuchElementException;
++
++public abstract class Combinations<T> implements Iterator<T> {
++
++  Iterator<T> a, b;
++
++  boolean useA = false;
++  boolean fromA = true;
++  int repeat = 0;
++  T target, value;
++
++  abstract T advance();
++
++  Combinations(Iterator<T> a, Iterator<T> b) {
++    this.a = a;
++    this.b = b;
++    target = a.hasNext() ? a.next() : null;
++    value = advance();
++  }
++
++  @Override
++  public boolean hasNext() {
++    return value != null;
++  }
++
++  @Override
++  public T next() {
++    if (value == null) {
++      throw new NoSuchElementException();
++    }
++    try {
++      return value;
++    } finally {
++      value = advance();
++    }
++  }
++
++  @Override
++  public void remove() {
++    throw new UnsupportedOperationException();
++  }
++
++  public static <T extends Comparable<T>> Iterator<T> or(Iterator<T> first, Iterator<T> second) {
++    return new Combinations<T>(first, second) {
++
++      @Override
++      protected T advance() {
++        Iterator<T> it = useA ? a : b;
++        while (true) {
++          T value = it.hasNext() ? it.next() : null;
++          int cmp = 1;
++          if (value == null || (target != null && (cmp = value.compareTo(target)) >= 0)) {
++            if (cmp == 0) {
++              continue;
++            }
++            try {
++              return target;
++            } finally {
++              target = value;
++              useA = !useA;
++            }
++          }
++          return value;
++        }
++      }
++
++    };
++  }
++
++  public static <T extends Comparable<T>> Iterator<T> and(Iterator<T> first, Iterator<T> second) {
++    return new Combinations<T>(first, second) {
++
++      @Override
++      protected T advance() {
++        while (true) {
++          Iterator<T> it = useA ? a : b;
++          if (!it.hasNext()) {
++            return null;
++          }
++          T value = it.next();
++          if (target == null) {
++            return null;
++          }
++          int cmp = value.compareTo(target);
++          if (cmp < 0) {
++            continue;
++          }
++          try {
++            if (cmp == 0) {
++              return target;
++            }
++          } finally {
++            target = value;
++            useA = !useA;
++          }
++        }
++      }
++
++    };
++  }
++
++  public static <T extends Comparable<T>> Iterator<T> andNot(Iterator<T> first, Iterator<T> second) {
++    return new Combinations<T>(first, second) {
++
++      @Override
++      protected T advance() {
++        while (true) {
++          Iterator<T> it = useA ? a : b;
++          T value = it.hasNext() ? it.next() : null;
++          int cmp = 1;
++          if (value == null || (target != null && (cmp = value.compareTo(target)) >= 0)) {
++            if (cmp == 0) {
++              repeat = 1;
++            }
++            try {
++              if (repeat == 0) {
++                if (fromA) {
++                  return target;
++                } else {
++                  continue;
++                }
++              }
++            } finally {
++              target = value;
++              fromA = useA;
++              useA = !useA;
++            }
++            if (repeat++ == 2) {
++              repeat = 0;
++            }
++          } else {
++            if (useA)
++              return value;
++          }
++        }
++      }
++
++    };
++  }
++
++  public static <T extends Comparable<T>> Iterator<T> xor(Iterator<T> first, Iterator<T> second) {
++    return new Combinations<T>(first, second) {
++
++      @Override
++      protected T advance() {
++        while (true) {
++          Iterator<T> it = useA ? a : b;
++          T value = it.hasNext() ? it.next() : null;
++          int cmp = 1;
++          if (value == null || (target != null && (cmp = value.compareTo(target)) >= 0)) {
++            if (cmp == 0) {
++              repeat = 1;
++            }
++            try {
++              if (repeat == 0) {
++                return target;
++              }
++            } finally {
++              target = value;
++              useA = !useA;
++            }
++            if (repeat++ == 2) {
++              repeat = 0;
++            }
++          } else {
++            return value;
++          }
++        }
++      }
++
++    };
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/Combinations.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/FieldAppender.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/FieldAppender.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/FieldAppender.java	(working copy)
+@@ -0,0 +1,117 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.lang.reflect.InvocationTargetException;
++import java.lang.reflect.Method;
++import java.util.HashSet;
++import java.util.Set;
++
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.common.util.SimpleOrderedMap;
++
++/**
++ * Class for adding properties from an object to a NamedList.
++ */
++public class FieldAppender {
++
++  // selected properties (or null for all)
++  private Set<String> fieldNames;
++  
++  /**
++   * Create a FieldAppender for adding the fields specified by the given
++   * SOLR formatted field list (i.e. command or space delimited).
++   */
++  public FieldAppender(String fl) {
++    this();
++    for (String field : fl.split("[, ]")) {
++      field = field.trim();
++      if (field.length() == 0) {
++        continue;
++      }
++      if ("*".equals(field)) {
++        fieldNames = null;
++        return;
++      }
++      fieldNames.add(field);
++    }
++  }
++
++  /**
++   * Create a FieldAppender for adding all fields (if the parameter is true)
++   * or for no fields (but fields may be added via getFieldNames()).
++   */
++  public FieldAppender(boolean all) {
++    fieldNames = all ? null : new HashSet<String>();
++  }
++  
++  /**
++   * Create a FieldAppeneder for adding fields, which may be added via
++   * getFieldNames().
++   */
++  public FieldAppender() {
++    this(false);
++  }
++  
++  /**
++   * Returns the (modifiable) set of field names to be added. A value of null
++   * indicates all fields are to be added.
++   */
++  public Set<String> getFieldNames() {
++    return fieldNames;
++  }
++  
++  /**
++   * Indicate that all fields should be added. Once this method is called, fields
++   * can not be added using the set returned by getFieldNames() (since it is null).
++   */
++  public void appendAllFields() {
++    fieldNames = null;
++  }
++  
++  /**
++   * Add a NamedList (with given name) with properties from the given object.
++   * Returns the new NamedList.
++   */
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public NamedList addNamedList(NamedList target, String name, Object object) {
++    NamedList<Object> list = new SimpleOrderedMap<>();
++    target.add(name, list);
++    
++    for (Method method : object.getClass().getMethods()) {
++      if (method.getParameterTypes().length > 0) continue;
++      String fieldName = NameConverter.getFieldName(method.getName());
++      if (fieldName == null) continue;
++      if (fieldNames == null) {
++        // return all get methods except getClass()
++        if (fieldName.equals("class")) continue;
++      } else {
++        // return named methods only
++        if (! fieldNames.contains(fieldName)) continue;
++      }
++      try {
++        list.add(fieldName, method.invoke(object));
++      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
++        throw new RuntimeException(e.getClass().getName() + " (" + fieldName + ": " + e.getMessage() + ")", e.getCause());
++      }
++    }
++    
++    return list;
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/FieldAppender.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/JoinSpec.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/JoinSpec.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/JoinSpec.java	(working copy)
+@@ -0,0 +1,131 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.util.Iterator;
++
++public class JoinSpec<T extends Comparable<T>> {
++  
++  private enum Op {
++    xjoin, unary, or, and, xor, and_not
++  }
++
++  Op operator = Op.unary;
++  
++  JoinSpec<T> first, second; // both are be null when operator == xjoin
++
++  String componentName; // only non-null when operator == xjoin
++  
++  JoinSpec<T> parent;
++  
++  private JoinSpec(JoinSpec<T> parent) {
++    this.parent = parent;
++  }
++  
++  private void add(JoinSpec<T> child) {
++    if (first == null) {
++      first = child;
++    } else if (second == null) {
++      second = child;
++    } else {
++      throw new RuntimeException("Bad operator (programming error)");
++    }
++  }
++  
++  public Iterator<T> iterator(Iterable it) {
++    if (operator == Op.xjoin) {
++      return it.iterator(componentName);
++    }
++    Iterator<T> first = this.first.iterator(it);
++    if (operator == Op.unary) {
++      return first;
++    }
++    Iterator<T> second = this.second.iterator(it);
++    switch (operator) {
++    case or:
++      return Combinations.or(first, second);
++    case and:
++      return Combinations.and(first, second);
++    case xor:
++      return Combinations.xor(first, second);
++    case and_not:
++      return Combinations.andNot(first, second);
++    default:
++      throw new RuntimeException("Bad operator: " + operator);
++    }
++  }
++  
++  public static <T extends Comparable<T>> JoinSpec<T> parse(String v) {
++    // ((a OR b) AND c) XOR (d AND NOT e)
++    JoinSpec<T> spec = new JoinSpec<>(null);
++    for (int i = 0; i < v.length(); ++i) {
++      char c = v.charAt(i);
++      if (Character.isWhitespace(c)) {
++        continue;
++      }
++      int z = 0;
++      if (c == '(') {
++        JoinSpec<T> js = new JoinSpec<>(spec);
++        spec.add(js);
++        spec = js;
++      } else if (c == ')') {
++        spec = spec.parent;
++      } else if ((z = safeCmp(v, i, "OR")) > 0) {
++          spec.operator = Op.or;
++      } else if ((z = safeCmp(v, i, "AND NOT")) > 0) {
++          spec.operator = Op.and_not;
++      } else if ((z = safeCmp(v, i, "AND")) > 0) {
++          spec.operator = Op.and;
++      } else if ((z = safeCmp(v, i, "XOR")) > 0) {
++          spec.operator = Op.xor;
++      } else {
++        // it must be a component name until the next whitespace or )
++        //FIXME probably need a cunning while to avoid end-of-input failures
++        int j;
++        for (j = i; j < v.length(); ++j) {
++          char cc = v.charAt(j);
++          if (cc == '(') {
++            //FIXME use a SyntaxError exception class
++            throw new RuntimeException("Syntax error");
++          }
++          if (Character.isWhitespace(cc) || cc == ')') {
++            break;
++          }
++        }
++        JoinSpec<T> js = new JoinSpec<>(spec);
++        js.operator = Op.xjoin;
++        js.componentName = v.substring(i, j);
++        spec.add(js);
++        i = j - 1;
++      }
++      i += z;
++    }
++    return spec;
++  }
++  
++  private static int safeCmp(String v, int i, String t) {
++    int j = i + t.length();
++    boolean match = j < v.length() && v.substring(i, j).equals(t);
++    return match ? t.length() : 0;
++  }
++  
++  public interface Iterable {
++    <T extends Comparable<T>> Iterator<T> iterator(String componentName);
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/JoinSpec.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/NameConverter.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/NameConverter.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/NameConverter.java	(working copy)
+@@ -0,0 +1,70 @@
++package org.apache.solr.search.xjoin;
++
++import java.util.Locale;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * Utility methods for converting between method names and field names.
++ */
++public class NameConverter {
++  
++  /**
++   * Given a method name, generate a field name if it's a getXxx or isXxx method.
++   * (Otherwise, return null.) The name is lower cased and _ seperated, so e.g.
++   * getFooBar becomes foo_bar.
++   */
++  public static String getFieldName(String methodName) {
++    int i;
++        if (methodName.startsWith("get")) {
++          i = 3;
++        } else if (methodName.startsWith("is")) {
++          i = 2;
++        } else {
++          return null;
++        }
++        StringBuilder fieldName = new StringBuilder();
++        for (; i < methodName.length(); ++i) {
++          char c = methodName.charAt(i);
++          if (Character.isUpperCase(c)) {
++            if (fieldName.length() > 0) {
++              fieldName.append("_");
++            }
++            fieldName.append(Character.toLowerCase(c));
++          } else {
++            fieldName.append(c);
++          }
++        }
++        return fieldName.toString();    
++  }
++  
++  /**
++   * Given a field name, generate a method name. The name is CamelCased, so
++   * e.g. foo_bar becomes getFooBar.
++   */
++  public static String getMethodName(String fieldName) {
++    StringBuilder methodName = new StringBuilder("get");
++    for (String bit : fieldName.split("_")) {
++      // English locale since code is written in English
++      methodName.append(bit.substring(0, 1).toUpperCase(Locale.ENGLISH));
++      methodName.append(bit.substring(1));
++    }
++    return methodName.toString();
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/NameConverter.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinParameters.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinParameters.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinParameters.java	(working copy)
+@@ -0,0 +1,42 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import org.apache.solr.common.params.CommonParams;
++
++/**
++ * Parameters for XJoin functionality.
++ */
++public class XJoinParameters {
++
++  // XJoinSearchComponent parameters
++  public static final String INIT_RESULTS_FACTORY = "factoryClass";
++  public static final String INIT_JOIN_FIELD = "joinField";
++  public static final String EXTERNAL_PREFIX = "external";
++  public static final String RESULTS_FIELD_LIST = "results";
++  public static final String DOC_FIELD_LIST = CommonParams.FL;
++
++  // XJoinValueSourceParser parameters
++  public static final String INIT_XJOIN_COMPONENT_NAME = "xJoinSearchComponent";
++  public static final String INIT_ATTRIBUTE = "attribute";
++  public static final String INIT_DEFAULT_VALUE = "defaultValue";
++  
++  // XJoinQParserPlugin parameters
++  public static final String INIT_FIELD = "f";
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinParameters.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinQParserPlugin.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinQParserPlugin.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinQParserPlugin.java	(working copy)
+@@ -0,0 +1,186 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.util.Iterator;
++
++import org.apache.commons.collections.IteratorUtils;
++import org.apache.commons.collections.Transformer;
++import org.apache.commons.collections.iterators.TransformIterator;
++import org.apache.lucene.index.Term;
++import org.apache.lucene.queries.TermsQuery;
++import org.apache.lucene.search.AutomatonQuery;
++import org.apache.lucene.search.BooleanClause;
++import org.apache.lucene.search.BooleanQuery;
++import org.apache.lucene.search.DocValuesTermsQuery;
++import org.apache.lucene.search.Query;
++import org.apache.lucene.search.QueryWrapperFilter;
++import org.apache.lucene.search.TermQuery;
++import org.apache.lucene.util.BytesRef;
++import org.apache.lucene.util.BytesRefBuilder;
++import org.apache.lucene.util.automaton.Automata;
++import org.apache.lucene.util.automaton.Automaton;
++import org.apache.solr.common.params.SolrParams;
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.request.SolrQueryRequest;
++import org.apache.solr.schema.FieldType;
++import org.apache.solr.search.QParser;
++import org.apache.solr.search.QParserPlugin;
++import org.apache.solr.search.QueryParsing;
++import org.apache.solr.search.SolrConstantScoreQuery;
++import org.apache.solr.search.SyntaxError;
++
++/**
++ * QParserPlugin for extracting join ids from the results stored in XJoin search
++ * components.
++ */
++public class XJoinQParserPlugin extends QParserPlugin {
++  
++  public static final String NAME = "xjoin";
++
++  /** For choosing the internal algorithm */
++  public static final String METHOD = "method";
++  
++  @Override @SuppressWarnings("rawtypes")
++  public void init(NamedList args) {
++    // nothing to do
++  }
++ 
++  // this code is modified from TermsQParserPlugin
++  private static enum Method {
++    termsFilter {
++      @Override
++      @SuppressWarnings("unchecked")
++      Query makeQuery(String fname, Iterator<BytesRef> it) {
++        return new TermsQuery(fname, IteratorUtils.toList(it));
++      }
++    },
++    booleanQuery {
++      @Override
++      Query makeQuery(String fname, Iterator<BytesRef> it) {
++        BooleanQuery.Builder bq = new BooleanQuery.Builder();
++        bq.setDisableCoord(true);
++        while (it.hasNext()) {
++          bq.add(new TermQuery(new Term(fname, it.next())), BooleanClause.Occur.SHOULD);
++        }
++        return bq.build();
++      }
++    },
++    automaton {
++      @Override
++      @SuppressWarnings("unchecked")
++      Query makeQuery(String fname, Iterator<BytesRef> it) {
++        Automaton union = Automata.makeStringUnion(IteratorUtils.toList(it));
++        return new AutomatonQuery(new Term(fname), union);
++      }
++    },
++    docValuesTermsFilter {
++      @Override
++      Query makeQuery(String fname, Iterator<BytesRef> it) {
++        return new DocValuesTermsQuery(fname, (BytesRef[])IteratorUtils.toArray(it, BytesRef.class));
++      }
++    };
++
++    abstract Query makeQuery(String fname, Iterator<BytesRef> it);
++  }
++  
++  // transformer from Object to BytesRef (using the given FieldType)
++  static private Transformer transformer(final FieldType ft) {
++    return new Transformer() {
++      
++      BytesRefBuilder term = new BytesRefBuilder();
++      
++      @Override
++      public BytesRef transform(Object joinId) {
++        String joinStr = joinId.toString();
++        // logic same as TermQParserPlugin
++        if (ft != null) {
++          ft.readableToIndexed(joinStr, term);
++        } else {
++          term.copyChars(joinStr);
++        }
++        return term.toBytesRef();
++      }
++      
++    };
++  }
++
++  /**
++   * Like fq={!xjoin}xjoin_component_name OR xjoin_component_name2
++   */
++  @Override
++  @SuppressWarnings("rawtypes")
++  public QParser createParser(String qstr, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
++    return new XJoinQParser(qstr, localParams, params, req);
++  }
++  
++  static class XJoinQParser<T extends Comparable<T>> extends QParser implements JoinSpec.Iterable {
++    
++    // record the join field when retrieving external results
++    // must be the same for all external sources referenced in our query
++    private String joinField;
++
++    public XJoinQParser(String qstr, SolrParams localParams, SolrParams params,SolrQueryRequest req) {
++      super(qstr, localParams, params, req);
++      joinField = null;
++    }
++
++    @Override
++    @SuppressWarnings("unchecked")
++    public Query parse() throws SyntaxError {
++      Method method = Method.valueOf(localParams.get(METHOD, Method.termsFilter.name()));
++      JoinSpec<T> js = JoinSpec.parse(localParams.get(QueryParsing.V));
++      Iterator<T> it = js.iterator(this);
++      if (joinField == null) {
++        throw new Exception("No XJoin component referenced by query");
++      }
++      FieldType ft = req.getSchema().getFieldTypeNoEx(joinField);
++      Iterator<BytesRef> bytesRefs = new TransformIterator(it, transformer(ft));
++      if (! bytesRefs.hasNext()) {
++        return new BooleanQuery.Builder().build(); // matches nothing
++      }
++      Query query = method.makeQuery(joinField, bytesRefs);
++      return new SolrConstantScoreQuery(new QueryWrapperFilter(query));
++    }
++    
++    @Override
++    @SuppressWarnings("unchecked")
++    public Iterator<T> iterator(String componentName) {
++      XJoinSearchComponent xJoin = (XJoinSearchComponent)req.getCore().getSearchComponent(componentName);
++      if (joinField == null) {
++        joinField = xJoin.getJoinField();
++      } else if (! xJoin.getJoinField().equals(joinField)) {
++        throw new Exception("XJoin components used in the same query must have same join field");
++      }
++      XJoinResults<T> results = (XJoinResults<T>)req.getContext().get(xJoin.getResultsTag());
++      if (results == null) {
++        throw new Exception("No xjoin results in request context");
++      }
++      return results.getJoinIds().iterator();
++    }
++    
++  }
++  
++  @SuppressWarnings("serial")
++  static class Exception extends RuntimeException {
++    public Exception(String message) {
++      super(message);
++    }
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinQParserPlugin.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResults.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResults.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResults.java	(working copy)
+@@ -0,0 +1,38 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
++ * Interface for external process results.
++ */
++public interface XJoinResults<IdType> {
++  
++  /**
++   * Get the external process result with given join id string.
++   * 
++   * Note: you might need to convert the argument to the correct type.
++   */
++  Object getResult(String joinIdStr);
++  
++  /**
++   * Get an ordered (ascending) iterable of external process join ids (null is
++   * not a valid id).
++   */
++  Iterable<IdType> getJoinIds();
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResults.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResultsFactory.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResultsFactory.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResultsFactory.java	(working copy)
+@@ -0,0 +1,41 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.io.IOException;
++
++import org.apache.solr.common.params.SolrParams;
++import org.apache.solr.common.util.NamedList;
++
++/**
++ * Interface for external process results factories.
++ */
++public interface XJoinResultsFactory<IdType> {
++  
++  /**
++   * Initialise the factory with the given parameters.
++   */
++  @SuppressWarnings("rawtypes")
++  public void init(NamedList args);
++
++  /**
++   * Get external process results based on the given parameters.
++   */
++  public XJoinResults<IdType> getResults(SolrParams params) throws IOException;
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinResultsFactory.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinSearchComponent.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinSearchComponent.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinSearchComponent.java	(working copy)
+@@ -0,0 +1,216 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Set;
++
++import org.apache.lucene.document.Document;
++import org.apache.solr.common.params.ModifiableSolrParams;
++import org.apache.solr.common.params.SolrParams;
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.common.util.SimpleOrderedMap;
++import org.apache.solr.handler.component.ResponseBuilder;
++import org.apache.solr.handler.component.SearchComponent;
++import org.apache.solr.search.DocIterator;
++import org.apache.solr.search.DocList;
++import org.apache.solr.search.Grouping;
++
++/**
++ * SOLR Search Component for performing an "x-join". It must be added to a request handler
++ * in both the first and last component lists.
++ * 
++ * In prepare(), it obtains external process results (based on parameters in the SOLR query
++ * URL) and places them into the request context.
++ * 
++ * In process(), it appends (selectable) attributes of the external process results to the
++ * query results.
++ * 
++ * Note that results can be sorted or boosted by a property of external results by using
++ * the associated XjoinValueSourceParser (creating a custom function which may be referenced
++ * in, for example, a sort spec or a boost query).
++ */
++public class XJoinSearchComponent extends SearchComponent {
++
++  // factory for creating XJoinResult objects per search
++  private XJoinResultsFactory<?> factory;
++
++  // document field on which to join with external results
++  private String joinField;
++  
++  /**
++   * Initialise the component by instantiating our factory class, and initialising
++   * the join field.
++   */
++  @Override
++  @SuppressWarnings("rawtypes")
++  public void init(NamedList args) {
++    super.init(args);
++    
++    try {
++      Class<?> factoryClass = Class.forName((String)args.get(XJoinParameters.INIT_RESULTS_FACTORY));
++      factory = (XJoinResultsFactory<?>)factoryClass.newInstance();
++      factory.init((NamedList)args.get(XJoinParameters.EXTERNAL_PREFIX));
++    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
++      throw new RuntimeException(e);
++    }
++    
++    joinField = (String)args.get(XJoinParameters.INIT_JOIN_FIELD);
++  }
++  
++  // get the results factory
++  /*package*/ XJoinResultsFactory<?> getResultsFactory() {
++    return factory;
++  }
++  
++  // get the context tag for XJoin results
++  /*package*/ String getResultsTag() {
++    return XJoinResults.class.getName() + "::" + getName();
++  }
++  
++  /**
++   * Generate external process results (if they have not already been generated).
++   */
++  @Override
++  public void prepare(ResponseBuilder rb) throws IOException {
++    SolrParams params = rb.req.getParams();
++    if (! params.getBool(getName(), false)) {
++      return;
++    }
++      
++    XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
++    if (results != null) {
++      return;
++    }
++      
++    // generate external process results, by passing 'external' prefixed parameters
++    // from the query string to our factory
++    String prefix = getName() + "." + XJoinParameters.EXTERNAL_PREFIX + ".";
++    ModifiableSolrParams externalParams = new ModifiableSolrParams();
++    for (Iterator<String> it = params.getParameterNamesIterator(); it.hasNext(); ) {
++      String name = it.next();
++      if (name.startsWith(prefix)) {
++        externalParams.set(name.substring(prefix.length()), params.get(name));
++      }
++    }
++    results = factory.getResults(externalParams);
++    rb.req.getContext().put(getResultsTag(), results);
++  }
++
++  /**
++   * Match up search results and add corresponding data for each result (if we have query
++   * results available).
++   */
++  @Override
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void process(ResponseBuilder rb) throws IOException {
++    SolrParams params = rb.req.getParams();
++    if (! params.getBool(getName(), false)) {
++      return;
++    }
++
++    XJoinResults<?> results = (XJoinResults<?>)rb.req.getContext().get(getResultsTag());
++    if (results == null || rb.getResults() == null) {
++      return;
++    }
++
++    // general results
++    FieldAppender appender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.RESULTS_FIELD_LIST, "*"));
++    NamedList general = appender.addNamedList(rb.rsp.getValues(), getName(), results);
++
++    // per join id results
++    FieldAppender docAppender = new FieldAppender((String)params.get(getName() + "." + XJoinParameters.DOC_FIELD_LIST, "*"));    
++    Set<String> joinFields = new HashSet<>();
++    joinFields.add(joinField);
++    
++    List<String> joinIds = new ArrayList<>();
++    for (Iterator<Integer> it = docIterator(rb); it.hasNext(); ) {
++      Document doc = rb.req.getSearcher().doc(it.next(), joinFields);
++      for (String joinId : doc.getValues(joinField)) {
++        if (! joinIds.contains(joinId)) {
++          joinIds.add(joinId);
++        }
++      }
++    }
++    
++    List externalList = new ArrayList();
++    general.add("external", externalList);
++    
++    for (String joinId : joinIds) {
++      Object object = results.getResult(joinId);
++      if (object == null) continue;
++      SimpleOrderedMap external = new SimpleOrderedMap<>();
++      externalList.add(external);
++      external.add("joinId", joinId);
++      if (object instanceof Iterable) {
++        for (Object item : (Iterable)object) {
++          docAppender.addNamedList(external, "doc", item);
++        }
++      } else {
++        docAppender.addNamedList(external, "doc", object);        
++      }
++    }
++  }
++
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  private Iterator<Integer> docIterator(ResponseBuilder rb) {
++    if (rb.grouping()) {
++      List<Integer> docList = new ArrayList<>();
++      NamedList values = rb.rsp.getValues();
++      NamedList grouped = (NamedList)values.get("grouped");
++      for (String field : rb.getGroupingSpec().getFields()) {
++        NamedList fieldResults = (NamedList)grouped.get(field);
++        if (rb.getGroupingSpec().getResponseFormat() == Grouping.Format.grouped) {
++          List<NamedList> groups = (List<NamedList>)fieldResults.get("groups");
++          for (NamedList group : groups) {
++            for (DocIterator it = ((DocList)group.get("doclist")).iterator(); it.hasNext(); ) {
++              docList.add(it.nextDoc());
++            }
++          }
++        } else {
++          for (DocIterator it = ((DocList)fieldResults.get("doclist")).iterator(); it.hasNext(); ) {
++            docList.add(it.nextDoc());
++          }
++        }
++      }
++      return docList.iterator();
++    } else {
++      return rb.getResults().docList.iterator();
++    }
++    
++  }
++  
++  /*package*/ String getJoinField() {
++    return joinField;
++  }
++
++  @Override
++  public String getDescription() {
++    return "$description$";
++  }
++
++  @Override
++  public String getSource() {
++    return "$source$";
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinSearchComponent.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinValueSourceParser.java
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinValueSourceParser.java	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinValueSourceParser.java	(working copy)
+@@ -0,0 +1,190 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.io.IOException;
++import java.lang.reflect.InvocationTargetException;
++import java.lang.reflect.Method;
++import java.util.Map;
++
++import org.apache.lucene.index.BinaryDocValues;
++import org.apache.lucene.index.DocValues;
++import org.apache.lucene.index.LeafReaderContext;
++import org.apache.lucene.queries.function.FunctionValues;
++import org.apache.lucene.queries.function.ValueSource;
++import org.apache.lucene.queries.function.docvalues.DoubleDocValues;
++import org.apache.lucene.util.BytesRef;
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.search.FunctionQParser;
++import org.apache.solr.search.SyntaxError;
++import org.apache.solr.search.ValueSourceParser;
++
++/**
++ * ValueSourceParser to provide a function for retrieving the value of a field from
++ * external process results (for use in sort spec, boost function, etc.)
++ */
++public class XJoinValueSourceParser extends ValueSourceParser {
++  
++  // the name of the associated XJoinSearchComponent - could be null
++  private String componentName;
++  
++  // the attribute to examine in external results - could be null
++  private String attribute;
++  
++  // the default value if the results don't have an entry
++  private double defaultValue;
++  
++  /**
++   * Initialise from configuration.
++   */
++  @Override
++  @SuppressWarnings("rawtypes")
++  public void init(NamedList args) {
++    super.init(args);
++    
++    componentName = (String)args.get(XJoinParameters.INIT_XJOIN_COMPONENT_NAME);
++    attribute = (String)args.get(XJoinParameters.INIT_ATTRIBUTE);
++    
++    Double defaultValue = (Double)args.get(XJoinParameters.INIT_DEFAULT_VALUE);
++    if (defaultValue != null) {
++      this.defaultValue = defaultValue;
++    }
++    
++    if (componentName == null && attribute == null) {
++      throw new RuntimeException("At least one of " + XJoinParameters.INIT_XJOIN_COMPONENT_NAME +
++                                 " or " + XJoinParameters.INIT_ATTRIBUTE +
++                                 " must be specified");
++    }
++  }
++  
++  /**
++   * Provide a ValueSource for external process results, which are obtained from the
++   * request context (having been placed there by XJoinSearchComponent).
++   */
++  @Override
++  public ValueSource parse(FunctionQParser fqp) throws SyntaxError {
++    String componentName = this.componentName != null ? this.componentName : fqp.parseArg();
++    String attribute = this.attribute != null ? this.attribute : fqp.parseArg();
++    
++    XJoinSearchComponent xJoin = (XJoinSearchComponent)fqp.getReq().getCore().getSearchComponent(componentName);
++    String joinField = xJoin.getJoinField();
++    XJoinResults<?> results = (XJoinResults<?>)fqp.getReq().getContext().get(xJoin.getResultsTag());
++    if (results == null) {
++      throw new RuntimeException("No xjoin results in request context");
++    }
++    return new XJoinValueSource(joinField, results, attribute);
++  }
++  
++  /**
++   * ValueSource class for external process results.
++   */
++  public class XJoinValueSource extends ValueSource {
++
++    // the join field
++    private String joinField;
++    
++    // the external process results (generated by XJoinSearchComponent)
++    private XJoinResults<?> results;
++    
++    // the method on external results objects to use as the value
++    private String methodName;
++
++    /**
++     * Create an ExternalValueSource for the given external process results, for
++     * extracting the named attribute.
++     */
++    public XJoinValueSource(String joinField, XJoinResults<?> results, String attribute) {
++      this.joinField = joinField;
++      this.results = results;
++      this.methodName = NameConverter.getMethodName(attribute);
++    }
++
++    @Override
++    @SuppressWarnings("rawtypes")
++    public FunctionValues getValues(Map context, LeafReaderContext readerContext) throws IOException {
++      final BinaryDocValues joinValues = DocValues.getBinary(readerContext.reader(), joinField);
++
++      return new DoubleDocValues(this) {
++
++        @Override
++        public double doubleVal(int doc) {
++          BytesRef joinValue = joinValues.get(doc);
++          if (joinValue == null) {
++            throw new RuntimeException("No such doc: " + doc);
++          }
++          Object result = results.getResult(joinValue.utf8ToString());
++          if (result == null) {
++            return defaultValue;
++          }
++          if (result instanceof Iterable) {
++            Double max = null;
++            for (Object object : (Iterable)result) {
++              if (object != null) {
++                double value = getValue(object);
++                if (max == null || value > max) {
++                  max = value;
++                }
++              }
++            }
++            return max != null ? max : defaultValue;
++          } else {
++            return getValue(result);
++          }
++        }
++
++        //FIXME TODO What is the calling convention? Can we cache the BytesRef in exists() for doubleVal()?
++        
++        @Override
++        public boolean exists(int doc) {
++          BytesRef joinValue = joinValues.get(doc);
++          return joinValue != null;
++        }
++        
++      };
++    }
++
++    private double getValue(Object result) {
++      try {
++        Method method = result.getClass().getMethod(methodName);
++        return (Double)method.invoke(result);
++      } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
++        throw new RuntimeException(e);
++      }
++    }
++    
++    @Override
++    public String description() {
++      return "$description$";
++    }
++
++    @Override
++    public boolean equals(Object object) {
++      if (! (object instanceof XJoinValueSource)) {
++        return false;
++      }
++      return results.equals(((XJoinValueSource)object).results);
++    }
++
++    @Override
++    public int hashCode() {
++      return results.hashCode();
++    }
++    
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/XJoinValueSourceParser.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/package.html
+===================================================================
+--- solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/package.html	(revision 0)
++++ solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/package.html	(working copy)
+@@ -0,0 +1,22 @@
++<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
++<!--
++ Licensed to the Apache Software Foundation (ASF) under one or more
++ contributor license agreements.  See the NOTICE file distributed with
++ this work for additional information regarding copyright ownership.
++ The ASF licenses this file to You under the Apache License, Version 2.0
++ (the "License"); you may not use this file except in compliance with
++ the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++-->
++<html>
++<body>
++XJoin search component and related code
++</body>
++</html>
+
+Property changes on: solr/contrib/xjoin/src/java/org/apache/solr/search/xjoin/package.html
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/java/overview.html
+===================================================================
+--- solr/contrib/xjoin/src/java/overview.html	(revision 0)
++++ solr/contrib/xjoin/src/java/overview.html	(working copy)
+@@ -0,0 +1,21 @@
++<!--
++ Licensed to the Apache Software Foundation (ASF) under one or more
++ contributor license agreements.  See the NOTICE file distributed with
++ this work for additional information regarding copyright ownership.
++ The ASF licenses this file to You under the Apache License, Version 2.0
++ (the "License"); you may not use this file except in compliance with
++ the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++-->
++<html>
++<body>
++Apache Solr Search Server: xjoin contrib
++</body>
++</html>
+
+Property changes on: solr/contrib/xjoin/src/java/overview.html
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/AbstractXJoinTestCase.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/AbstractXJoinTestCase.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/AbstractXJoinTestCase.java	(working copy)
+@@ -0,0 +1,48 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import org.apache.solr.SolrTestCaseJ4;
++import org.junit.BeforeClass;
++
++/**
++ * Test case for XJoin, setting up a core containing test documents.
++ */
++public abstract class AbstractXJoinTestCase extends SolrTestCaseJ4 {
++  protected static int numberOfDocs = 0;
++
++  @BeforeClass
++  public static void beforeClass() throws Exception {
++    initCore("solrconfig.xml", "schema.xml", "xjoin/solr");
++    
++    numberOfDocs = 0;
++    for (String[] doc : DOCUMENTS) {
++      assertNull(h.validateUpdate(adoc("id", Integer.toString(numberOfDocs), "colour", doc[0], "letter", doc[1], "letter", doc[2])));
++      numberOfDocs++;
++    }
++    assertNull(h.validateUpdate(commit()));
++  }
++
++  final static String[][] DOCUMENTS = new String[][] {
++    { "red", "alpha", "beta" },
++    { "green", "alpha", "gamma" },
++    { "blue", "delta", "gamma" },
++    { "pink", "theta", "gamma" },
++    { "blue", "epsilon", "zeta" } };
++
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/AbstractXJoinTestCase.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/SimpleXJoinResultsFactory.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/SimpleXJoinResultsFactory.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/SimpleXJoinResultsFactory.java	(working copy)
+@@ -0,0 +1,104 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.io.IOException;
++import java.util.Arrays;
++
++import org.apache.solr.common.params.SolrParams;
++import org.apache.solr.common.util.NamedList;
++
++public class SimpleXJoinResultsFactory implements XJoinResultsFactory<String> {
++  
++  private String string;
++  
++  private String[] values;
++  
++  // all join ids return a result *except* this one!
++  private String missingId;
++  
++  @Override
++  @SuppressWarnings("rawtypes")
++  public void init(NamedList args) {
++    String valuesStr = (String)args.get("values");
++    values = valuesStr != null ? valuesStr.split(",") : new String[0];
++    string = (String)args.get("string");
++    missingId = (String)args.get("missingId");
++  }
++  
++  public String getMissingId() {
++    return missingId;
++  }
++  
++  public String getString() {
++    return string;
++  }
++
++  @Override
++  public XJoinResults<String> getResults(SolrParams params) throws IOException {
++    String valuesStr = params != null ? (String)params.get("values") : null;
++    return new Results(valuesStr != null ? valuesStr.split(",") : values);
++  }
++  
++  public class Results implements XJoinResults<String> {
++
++    private String[] values;
++    
++    private Results(String[] values) {
++      this.values = values;
++    }
++    
++    @Override
++    public Object getResult(String joinId) {
++      if (joinId.equals(missingId)) {
++        return null;
++      }
++      return new Result(joinId);
++    }
++
++    @Override
++    public Iterable<String> getJoinIds() {
++      Arrays.sort(values);
++      return Arrays.asList(values);
++    }
++    
++    public String getString() {
++      return string;
++    }
++    
++  }
++  
++  public static class Result {
++    
++    private String value;
++    
++    private Result(String value) {
++      this.value = value;
++    }
++    
++    public String getValue() {
++      return value;
++    }
++    
++    public double getScore() {
++      return TestXJoinValueSourceParser.value;
++    }
++    
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/SimpleXJoinResultsFactory.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestCombinations.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestCombinations.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestCombinations.java	(working copy)
+@@ -0,0 +1,189 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.apache.commons.collections.IteratorUtils.toList;
++import static org.junit.Assert.assertEquals;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Iterator;
++import java.util.List;
++
++import org.junit.Before;
++import org.junit.Test;
++
++@SuppressWarnings("unchecked")
++public class TestCombinations {
++
++  Iterator<Integer> e, a, aa, b, bb;
++  Integer[] es = { };
++  Integer[] as = { 3, 4, 6, 9 };
++  Integer[] aas = { 3, 4, 5, 6, 9 };
++  Integer[] bs = { 1, 2, 5, 8 };
++  Integer[] bbs = { 1, 2, 3, 5, 8 };
++  Integer[] cs = { 1, 2, 3, 4, 5, 6, 8, 9 };
++  Integer[] ds = { 3, 5 };
++  Integer[] xs = { 1, 2, 4, 6, 8, 9 };
++  Integer[] ns = { 4, 6, 9 };
++  
++  @Before
++  public void setUp() {
++    e = Arrays.asList(es).iterator();
++    a = Arrays.asList(as).iterator();
++    aa = Arrays.asList(aas).iterator();
++    b = Arrays.asList(bs).iterator();
++    bb = Arrays.asList(bbs).iterator();
++  }
++  
++  @Test
++  public void testOr() {
++    List<Integer> cl = toList(Combinations.or(a, b));
++    assertEquals(Arrays.asList(cs), cl);
++  }
++  
++  @Test
++  public void testOrRepeat() {
++    List<Integer> cl = toList(Combinations.or(a, bb));
++    assertEquals(Arrays.asList(cs), cl);
++  }
++  
++  @Test
++  public void testOrRepeat2() {
++    List<Integer> cl = toList(Combinations.or(aa, b));
++    assertEquals(Arrays.asList(cs), cl);
++  }
++  
++  @Test
++  public void testOrEmptyA() {
++    List<Integer> cl = toList(Combinations.or(e, b));
++    assertEquals(Arrays.asList(bs), cl);
++  }
++  
++  @Test
++  public void testOrEmptyB() {
++    List<Integer> cl = toList(Combinations.or(a, e));
++    assertEquals(Arrays.asList(as), cl);
++  }
++  
++  @Test
++  public void testOrEmptyAB() {
++    List<Integer> cl = toList(Combinations.or(e, e));
++    assertEquals(Arrays.asList(es), cl);
++  }
++  
++  @Test
++  public void testAnd() {
++    List<Integer> cl = toList(Combinations.and(aa, bb));
++    assertEquals(Arrays.asList(ds), cl);    
++  }
++  
++  @Test
++  public void testAndEmptyA() {
++    List<Integer> cl = toList(Combinations.and(e, bb));
++    assertEquals(Arrays.asList(es), cl);    
++  }
++  
++  @Test
++  public void testAndEmptyB() {
++    List<Integer> cl = toList(Combinations.and(aa, e));
++    assertEquals(Arrays.asList(es), cl);    
++  }
++  
++  @Test
++  public void testAndEmptyAB() {
++    List<Integer> cl = toList(Combinations.and(e, e));
++    assertEquals(Arrays.asList(es), cl);    
++  }
++  
++  @Test
++  public void testXOr() {
++    List<Integer> cl = toList(Combinations.xor(a, b));
++    assertEquals(Arrays.asList(cs), cl);
++  }
++  
++  @Test
++  public void testXOrRepeat() {
++    List<Integer> cl = toList(Combinations.xor(aa, bb));
++    assertEquals(Arrays.asList(xs), cl);
++  }
++  
++  @Test
++  public void testAndNot() {
++    List<Integer> cl = toList(Combinations.andNot(a, b));
++    assertEquals(Arrays.asList(as), cl);
++  }
++  
++  @Test
++  public void testAndNotRepeat() {
++    List<Integer> cl = toList(Combinations.andNot(aa, bb));
++    assertEquals(Arrays.asList(ns), cl);
++  }
++
++  // more of an instructive example of how this will be used in XJoinQParserPlugin
++  @Test
++  public void testHetero() {
++    List<Foo> A_36 = Foo.range("A", 3, 6);
++    List<Foo> A_48 = Foo.range("A", 4, 8);
++    List<Foo> B_17 = Foo.range("B", 1, 7);
++    
++    // so, different types shouldn't get mingled
++    List<Foo> A_36_B_17 = Foo.range("A", 3, 6);
++    A_36_B_17.addAll(Foo.range("B", 1, 7));
++    assertEquals(A_36_B_17, toList(Combinations.or(A_36.iterator(), B_17.iterator())));
++    assertEquals(0, toList(Combinations.and(A_36.iterator(), B_17.iterator())).size());
++    
++    // but check that the same type does
++    List<Foo> A_38 = Foo.range("A", 3, 8);
++    assertEquals(A_38, toList(Combinations.or(A_36.iterator(), A_48.iterator())));
++    
++    Iterator<Foo> A_or_B = Combinations.or(A_48.iterator(), B_17.iterator());
++    assertEquals(3, toList(Combinations.and(A_36.iterator(), A_or_B)).size());
++  }
++
++  static class Foo implements Comparable<Foo> {
++    String type;
++    int value;
++    
++    static List<Foo> range(String type, int m, int n) {
++      List<Foo> f = new ArrayList<Foo>(n - m + 1);
++      for (int i = 0; i <= n - m; ++i) {
++        Foo foo = new Foo();
++        foo.type = type;
++        foo.value = m + i;
++        f.add(foo);
++      }
++      return f;
++    }
++
++    @Override
++    public int compareTo(Foo that) {
++      int v = this.type.compareTo(that.type);
++      if (v != 0) {
++        return v;
++      }
++      return new Integer(this.value).compareTo(that.value);
++    }
++    
++    @Override
++    public boolean equals(Object that) {
++      return that instanceof Foo && compareTo((Foo)that) == 0;
++    }
++  }
++
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestCombinations.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestFieldAppender.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestFieldAppender.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestFieldAppender.java	(working copy)
+@@ -0,0 +1,84 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertNull;
++import static org.junit.Assert.assertTrue;
++
++import java.util.Arrays;
++import java.util.HashSet;
++
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.search.xjoin.FieldAppender;
++import org.junit.Test;
++
++public class TestFieldAppender {
++
++  @Test
++  public void fieldList() {
++    FieldAppender fa = new FieldAppender(" foo  bar,  ,  baz, foo ");
++    String[] expected = new String[] { "foo", "bar", "baz" };
++    assertEquals(new HashSet<>(Arrays.asList(expected)), fa.getFieldNames());
++  }
++
++  @Test
++  public void fieldListAll() {
++    FieldAppender fa = new FieldAppender("foo, * bar");
++    assertNull(fa.getFieldNames());
++  }
++  
++  @Test
++  public void addFieldNames() {
++    FieldAppender fa = new FieldAppender();
++    fa.getFieldNames().add("foo");
++    fa.getFieldNames().add("bar");
++    String[] expected = new String[] { "foo", "bar" };
++    assertEquals(new HashSet<>(Arrays.asList(expected)), fa.getFieldNames());
++    fa.appendAllFields();
++    assertNull(fa.getFieldNames());
++  }
++  
++  @Test
++  @SuppressWarnings("rawtypes")
++  public void addNamedList() {
++    FieldAppender fa = new FieldAppender(true);
++    NamedList root = new NamedList();
++    NamedList added = fa.addNamedList(root, "list", new Object() {
++      @SuppressWarnings("unused")
++      public String getFoo() {
++        return "foo";
++      }
++      
++      @SuppressWarnings("unused")
++      public int getBar() {
++        return 123;
++      }
++      
++      @SuppressWarnings("unused")
++      public boolean isBaz() {
++        return true;
++      }
++    });
++    assertEquals(added, root.get("list"));
++    assertEquals("foo", added.get("foo"));
++    assertEquals(123, added.get("bar"));
++    assertTrue((boolean)added.get("baz"));
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestFieldAppender.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestJoinSpec.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestJoinSpec.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestJoinSpec.java	(working copy)
+@@ -0,0 +1,83 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.junit.Assert.assertEquals;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Iterator;
++import java.util.List;
++
++import org.junit.Test;
++
++public class TestJoinSpec {
++
++  private JoinSpec.Iterable ranges = new JoinSpec.Iterable() {
++    @Override
++    @SuppressWarnings("unchecked")
++    public Iterator<Integer> iterator(String componentName) {
++      String[] bits = componentName.split("-");
++      final int m = new Integer(bits[0]);
++      final int n = bits.length > 1 ? new Integer(bits[1]) : m;
++      return new Iterator<Integer>() {
++  
++        int N = m;
++        
++        @Override
++        public boolean hasNext() {
++          return N <= n;
++        }
++  
++        @Override
++        public Integer next() {
++          return N++;
++        }
++  
++        @Override
++        public void remove() {
++          throw new UnsupportedOperationException();
++        }
++        
++      };
++    }
++  };
++
++  private void assertParseResult(Integer[] values, String v) {
++    JoinSpec<Integer> js = JoinSpec.parse(v);
++    Iterator<Integer> it = js.iterator(ranges);
++    List<Integer> list = new ArrayList<>();
++    while (it.hasNext()) {
++      list.add(it.next());
++    }
++    assertEquals(Arrays.asList(values), list);
++  }
++  
++  @Test
++  public void testUnary() {
++    Integer[] values = { 1, 2, 3 };
++    assertParseResult(values, "1-3");
++  }
++  
++  @Test
++  public void test() {
++    Integer[] values = { 1, 5, 8 };
++    assertParseResult(values, "(5-7 XOR 6-8) OR 1");
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestJoinSpec.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestNameConverter.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestNameConverter.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestNameConverter.java	(working copy)
+@@ -0,0 +1,45 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertNull;
++
++import org.apache.solr.search.xjoin.NameConverter;
++import org.junit.Test;
++
++public class TestNameConverter {
++
++  @Test
++  public void fieldToMethod() {
++    assertEquals("getFooBar", NameConverter.getMethodName("foo_bar"));
++    assertEquals("getAProperty", NameConverter.getMethodName("a_property"));
++  }
++  
++  @Test
++  public void methodToField() {
++    assertEquals("foo_bar", NameConverter.getFieldName("isFooBar"));
++    assertEquals("a_property", NameConverter.getFieldName("getAProperty"));
++  }
++  
++  @Test
++  public void nulls() {
++    assertNull(NameConverter.getFieldName("doSomething"));
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestNameConverter.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinQParserPlugin.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinQParserPlugin.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinQParserPlugin.java	(working copy)
+@@ -0,0 +1,153 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.when;
++
++import java.io.IOException;
++import java.util.HashMap;
++import java.util.Map;
++
++import org.apache.lucene.search.Query;
++import org.apache.solr.common.params.ModifiableSolrParams;
++import org.apache.solr.core.SolrCore;
++import org.apache.solr.request.SolrQueryRequest;
++import org.apache.solr.search.DocIterator;
++import org.apache.solr.search.DocSet;
++import org.apache.solr.search.QParser;
++import org.apache.solr.search.QParserPlugin;
++import org.apache.solr.search.QueryParsing;
++import org.apache.solr.search.SolrIndexSearcher;
++import org.apache.solr.search.SyntaxError;
++import org.junit.AfterClass;
++import org.junit.BeforeClass;
++import org.junit.Test;
++
++public class TestXJoinQParserPlugin extends AbstractXJoinTestCase {
++
++  static final String COMPONENT_NAME_0 = "xjoin0";
++  static final String COMPONENT_NAME = "xjoin";
++  static final String COMPONENT_NAME_2 = "xjoin2";
++  static final String COMPONENT_NAME_3 = "xjoin3";
++  static final String COMPONENT_NAME_4 = "xjoin4";
++  static final String PARSER_NAME = "xjoin";
++  
++  static SolrCore core;
++  static SolrQueryRequest req;
++  static SolrIndexSearcher searcher;
++
++  private static void initComponent(SolrCore core, Map<Object, Object> context, String componentName) throws IOException {
++    XJoinSearchComponent xjsc = (XJoinSearchComponent)core.getSearchComponent(componentName);
++    SimpleXJoinResultsFactory xjrf = (SimpleXJoinResultsFactory)xjsc.getResultsFactory();
++    XJoinResults<?> results = xjrf.getResults(null);
++    context.put(xjsc.getResultsTag(), results);    
++  }
++  
++  private static Query parse(String v) throws SyntaxError {
++    ModifiableSolrParams localParams = new ModifiableSolrParams();
++    localParams.add(QueryParsing.V, v);
++    QParserPlugin qpp = core.getQueryPlugin(PARSER_NAME);
++    QParser qp = qpp.createParser(null, localParams, null, req);
++    return qp.parse();
++  }
++  
++  @BeforeClass
++  public static void initialise() throws Exception {
++    core = h.getCore();
++
++    // set up mock SOLR query request
++    req = mock(SolrQueryRequest.class);
++    Map<Object, Object> context = new HashMap<>();
++    when(req.getContext()).thenReturn(context);
++    when(req.getCore()).thenReturn(core);
++    when(req.getSchema()).thenReturn(core.getLatestSchema());
++
++    // put results for XJoin components in request context
++    initComponent(core, context, COMPONENT_NAME_0);
++    initComponent(core, context, COMPONENT_NAME);
++    initComponent(core, context, COMPONENT_NAME_2);
++    initComponent(core, context, COMPONENT_NAME_3);
++    initComponent(core, context, COMPONENT_NAME_4);
++    
++    // get a search, used by some tests
++    searcher = core.getRegisteredSearcher().get();
++  }
++  
++  @AfterClass
++  public static void destroy() throws Exception {
++    searcher.close();
++  }
++  
++  @Test
++  public void testSingleComponent() throws Exception {
++    Query q = parse(COMPONENT_NAME);
++    DocSet docs = searcher.getDocSet(q);
++
++    assertEquals(2, docs.size());
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(1, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++    assertFalse(it.hasNext());
++  }
++  
++  @Test
++  public void testBooleanCombination() throws Exception {
++    Query q = parse(COMPONENT_NAME + " AND " + COMPONENT_NAME_2);
++    DocSet docs = searcher.getDocSet(q);
++
++    assertEquals(1, docs.size());
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++    assertFalse(it.hasNext());    
++  }
++  
++  @Test(expected=XJoinQParserPlugin.Exception.class)
++  public void testConflictingJoinFields() throws Exception {
++    parse(COMPONENT_NAME + " OR " + COMPONENT_NAME_3);
++  }
++  
++  @Test
++  public void testNoResults() throws Exception {
++    Query q = parse(COMPONENT_NAME_0);
++    DocSet docs = searcher.getDocSet(q);
++    assertEquals(0, docs.size());
++  }
++  
++  @Test
++  public void testMultiValued() throws Exception {
++    Query q = parse(COMPONENT_NAME_4);
++    DocSet docs = searcher.getDocSet(q);
++
++    assertEquals(4, docs.size());
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(0, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(1, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(2, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++    assertFalse(it.hasNext());    
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinQParserPlugin.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinSearchComponent.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinSearchComponent.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinSearchComponent.java	(working copy)
+@@ -0,0 +1,169 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++
++import org.apache.solr.common.params.ModifiableSolrParams;
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.common.util.SimpleOrderedMap;
++import org.apache.solr.core.SolrCore;
++import org.apache.solr.handler.component.SearchComponent;
++import org.apache.solr.request.LocalSolrQueryRequest;
++import org.apache.solr.request.SolrQueryRequest;
++import org.apache.solr.request.SolrRequestHandler;
++import org.apache.solr.response.ResultContext;
++import org.apache.solr.response.SolrQueryResponse;
++import org.apache.solr.search.DocIterator;
++import org.apache.solr.search.DocList;
++import org.apache.solr.search.QParserPlugin;
++import org.junit.Test;
++
++public class TestXJoinSearchComponent extends AbstractXJoinTestCase {
++
++  static String requestHandler = "standard";
++
++  @Test
++  @SuppressWarnings("rawtypes")
++  public void testUngrouped() {
++    ModifiableSolrParams params = new ModifiableSolrParams();
++    NamedList results = test(params, "xjoin");
++    testXJoinResults(results, "xjoin");
++    ResultContext response = (ResultContext)results.get("response");
++    DocList docs = response.docs;
++    assertEquals(2, docs.size());
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(1, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++    assertFalse(it.hasNext());
++  }
++
++  @Test
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void testGrouped() {
++    ModifiableSolrParams params = new ModifiableSolrParams();    
++    params.add("group", "true");
++    params.add("group.field", "colour");
++    NamedList results = test(params, "xjoin");
++    testXJoinResults(results, "xjoin");
++    NamedList grouped = (NamedList)results.get("grouped");
++    NamedList colours = (NamedList)grouped.get("colour");
++    assertEquals(2, colours.get("matches"));
++    List<NamedList> groups = (List<NamedList>)colours.get("groups");
++    assertEquals(2, groups.size());
++    
++    // check first (green) group
++    NamedList green = (NamedList)groups.get(0);
++    assertEquals(green.get("groupValue"), "green");
++    DocList docs = (DocList)green.get("doclist");
++    assertEquals(docs.size(), 1);
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(1, it.nextDoc());
++    
++    // check second (pink) group
++    NamedList pink = (NamedList)groups.get(1);
++    assertEquals(pink.get("groupValue"), "pink");
++    docs = (DocList)pink.get("doclist");
++    assertEquals(docs.size(), 1);
++    it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++  }
++
++  @Test
++  @SuppressWarnings("rawtypes")
++  public void testGroupedSimple() {
++    ModifiableSolrParams params = new ModifiableSolrParams();    
++    params.add("group", "true");
++    params.add("group.field", "colour");
++    params.add("group.format", "simple");
++    NamedList results = test(params, "xjoin");
++    testXJoinResults(results, "xjoin");
++    NamedList grouped = (NamedList)results.get("grouped");
++    NamedList colours = (NamedList)grouped.get("colour");
++    assertEquals(2, colours.get("matches"));
++    DocList docs = (DocList)colours.get("doclist");
++    assertEquals(docs.size(), 2);
++    DocIterator it = docs.iterator();
++    assertTrue(it.hasNext());
++    assertEquals(1, it.nextDoc());
++    assertTrue(it.hasNext());
++    assertEquals(3, it.nextDoc());
++    assertFalse(it.hasNext());
++  }
++  
++  @Test
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void testMultiValued() {
++    ModifiableSolrParams params = new ModifiableSolrParams();
++    params.add("xjoin4", "true");
++    NamedList results = test(params, "xjoin4");
++    NamedList xjoin = (NamedList)results.get("xjoin4");
++    List<NamedList> list = (List)xjoin.get("external");
++    assertEquals(5, list.size());
++    assertEquals(list.get(0).get("joinId"), "alpha");
++    assertEquals(list.get(1).get("joinId"), "beta");
++    assertEquals(list.get(2).get("joinId"), "gamma");
++    assertEquals(list.get(3).get("joinId"), "delta");
++    assertEquals(list.get(4).get("joinId"), "theta");
++  }
++  
++  @SuppressWarnings("rawtypes")
++  private NamedList test(ModifiableSolrParams params, String componentName) {
++    SolrCore core = h.getCore();
++
++    SearchComponent sc = core.getSearchComponent(componentName);
++    assertTrue("XJoinSearchComponent not found in solrconfig", sc != null);
++      
++    QParserPlugin qp = core.getQueryPlugin("xjoin");
++    assertTrue("XJoinQParserPlugin not found in solrconfig", qp != null);
++    
++    params.add("q", "*:*");
++    params.add("fq", "{!xjoin}" + componentName);
++
++    SolrQueryResponse rsp = new SolrQueryResponse();
++    rsp.add("responseHeader", new SimpleOrderedMap<>());
++    SolrQueryRequest req = new LocalSolrQueryRequest(core, params);
++
++    SolrRequestHandler handler = core.getRequestHandler(requestHandler);
++    handler.handleRequest(req, rsp);
++    req.close();
++    assertNull(rsp.getException());
++      
++    return rsp.getValues();
++  }
++  
++  @SuppressWarnings({ "unchecked", "rawtypes" })
++  private void testXJoinResults(NamedList results, String componentName) {
++    NamedList xjoin = (NamedList)results.get(componentName);
++    assertTrue(componentName + " should not be null", xjoin != null);
++    assertEquals("a test string", xjoin.get("string"));
++    
++    String[] values = { "1", "3", "8" };
++    Set<String> expected = new HashSet<>(Arrays.asList(values));
++    Set<String> actual = new HashSet<String>((List<String>)xjoin.get("join_ids"));
++    assertEquals(expected, actual);
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinSearchComponent.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinValueSourceParser.java
+===================================================================
+--- solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinValueSourceParser.java	(revision 0)
++++ solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinValueSourceParser.java	(working copy)
+@@ -0,0 +1,119 @@
++package org.apache.solr.search.xjoin;
++
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.when;
++
++import java.util.HashMap;
++import java.util.Map;
++
++import org.apache.lucene.queries.function.FunctionValues;
++import org.apache.lucene.queries.function.ValueSource;
++import org.apache.solr.common.util.NamedList;
++import org.apache.solr.core.SolrCore;
++import org.apache.solr.request.SolrQueryRequest;
++import org.apache.solr.search.FunctionQParser;
++import org.apache.solr.search.SolrIndexSearcher;
++import org.junit.AfterClass;
++import org.junit.BeforeClass;
++import org.junit.Test;
++
++public class TestXJoinValueSourceParser extends AbstractXJoinTestCase {
++
++  static double value = 0.5;
++  static double defaultValue = 1.0;
++  static String componentName = "xjoin";
++  static String resultAttribute = "score";
++  
++  static SolrIndexSearcher searcher;
++  static SolrQueryRequest sqr;
++  static int missingDoc;
++
++  @BeforeClass
++  public static void initialise() throws Exception {
++    SolrCore core = h.getCore();
++
++    XJoinSearchComponent xjsc = (XJoinSearchComponent)core.getSearchComponent(componentName);
++    SimpleXJoinResultsFactory xjrf = (SimpleXJoinResultsFactory)xjsc.getResultsFactory();
++    XJoinResults<?> results = xjrf.getResults(null);
++    
++    // mock SolrQueryRequest with join results in the context
++    sqr = mock(SolrQueryRequest.class);
++    Map<Object, Object> context = new HashMap<>();
++    context.put(xjsc.getResultsTag(), results);
++    when(sqr.getContext()).thenReturn(context);
++    when(sqr.getCore()).thenReturn(core);
++    
++    searcher = core.getRegisteredSearcher().get();
++    
++    missingDoc = new Integer(xjrf.getMissingId());
++  }
++  
++  @AfterClass
++  public static void tidyUp() throws Exception {
++    searcher.close();
++  }
++  
++  // mock function qparser returning a given argument
++  // (to match getScore() in the xjoin results)
++  private FunctionQParser mockFunctionQParser(String arg) throws Exception {
++    FunctionQParser fqp = mock(FunctionQParser.class);
++    when(fqp.getReq()).thenReturn(sqr);    
++    when(fqp.parseArg()).thenReturn(arg);
++    return fqp;
++  }
++  
++  @SuppressWarnings({ "rawtypes" })
++  private FunctionValues functionValues(NamedList initArgs, String arg) throws Exception {
++    FunctionQParser fqp = mockFunctionQParser(arg);
++    XJoinValueSourceParser vsp = new XJoinValueSourceParser();
++    vsp.init(initArgs);
++    ValueSource vs = vsp.parse(fqp);
++    return vs.getValues(null, searcher.getLeafReader().getContext());
++  }
++
++  @Test
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void testAttributeArg() throws Exception {
++    NamedList initArgs = new NamedList();
++    initArgs.add(XJoinParameters.INIT_XJOIN_COMPONENT_NAME, componentName);
++    FunctionValues fv = functionValues(initArgs, resultAttribute);
++    assertEquals(value, fv.doubleVal(0), 0);
++  }
++
++  @Test
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void testComponentArg() throws Exception {
++    NamedList initArgs = new NamedList();
++    initArgs.add(XJoinParameters.INIT_ATTRIBUTE, resultAttribute);
++    FunctionValues fv = functionValues(initArgs, componentName);
++    assertEquals(value, fv.doubleVal(0), 0);
++  }
++
++  @Test
++  @SuppressWarnings({ "rawtypes", "unchecked" })
++  public void testDefault() throws Exception {
++    NamedList initArgs = new NamedList();
++    initArgs.add(XJoinParameters.INIT_ATTRIBUTE, resultAttribute);
++    initArgs.add(XJoinParameters.INIT_DEFAULT_VALUE, defaultValue);
++    FunctionValues fv = functionValues(initArgs, componentName);
++    assertEquals(defaultValue, fv.doubleVal(missingDoc), 0);
++  }
++  
++}
+
+Property changes on: solr/contrib/xjoin/src/test/org/apache/solr/search/xjoin/TestXJoinValueSourceParser.java
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/mapping-ISOLatin1Accent.txt
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/mapping-ISOLatin1Accent.txt	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/mapping-ISOLatin1Accent.txt	(working copy)
+@@ -0,0 +1,246 @@
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# Syntax:
++#   "source" => "target"
++#     "source".length() > 0 (source cannot be empty.)
++#     "target".length() >= 0 (target can be empty.)
++
++# example:
++#   "À" => "A"
++#   "\u00C0" => "A"
++#   "\u00C0" => "\u0041"
++#   "ß" => "ss"
++#   "\t" => " "
++#   "\n" => ""
++
++# À => A
++"\u00C0" => "A"
++
++# Á => A
++"\u00C1" => "A"
++
++# Â => A
++"\u00C2" => "A"
++
++# Ã => A
++"\u00C3" => "A"
++
++# Ä => A
++"\u00C4" => "A"
++
++# Å => A
++"\u00C5" => "A"
++
++# Æ => AE
++"\u00C6" => "AE"
++
++# Ç => C
++"\u00C7" => "C"
++
++# È => E
++"\u00C8" => "E"
++
++# É => E
++"\u00C9" => "E"
++
++# Ê => E
++"\u00CA" => "E"
++
++# Ë => E
++"\u00CB" => "E"
++
++# Ì => I
++"\u00CC" => "I"
++
++# Í => I
++"\u00CD" => "I"
++
++# Î => I
++"\u00CE" => "I"
++
++# Ï => I
++"\u00CF" => "I"
++
++# Ĳ => IJ
++"\u0132" => "IJ"
++
++# Ð => D
++"\u00D0" => "D"
++
++# Ñ => N
++"\u00D1" => "N"
++
++# Ò => O
++"\u00D2" => "O"
++
++# Ó => O
++"\u00D3" => "O"
++
++# Ô => O
++"\u00D4" => "O"
++
++# Õ => O
++"\u00D5" => "O"
++
++# Ö => O
++"\u00D6" => "O"
++
++# Ø => O
++"\u00D8" => "O"
++
++# Œ => OE
++"\u0152" => "OE"
++
++# Þ
++"\u00DE" => "TH"
++
++# Ù => U
++"\u00D9" => "U"
++
++# Ú => U
++"\u00DA" => "U"
++
++# Û => U
++"\u00DB" => "U"
++
++# Ü => U
++"\u00DC" => "U"
++
++# Ý => Y
++"\u00DD" => "Y"
++
++# Ÿ => Y
++"\u0178" => "Y"
++
++# à => a
++"\u00E0" => "a"
++
++# á => a
++"\u00E1" => "a"
++
++# â => a
++"\u00E2" => "a"
++
++# ã => a
++"\u00E3" => "a"
++
++# ä => a
++"\u00E4" => "a"
++
++# å => a
++"\u00E5" => "a"
++
++# æ => ae
++"\u00E6" => "ae"
++
++# ç => c
++"\u00E7" => "c"
++
++# è => e
++"\u00E8" => "e"
++
++# é => e
++"\u00E9" => "e"
++
++# ê => e
++"\u00EA" => "e"
++
++# ë => e
++"\u00EB" => "e"
++
++# ì => i
++"\u00EC" => "i"
++
++# í => i
++"\u00ED" => "i"
++
++# î => i
++"\u00EE" => "i"
++
++# ï => i
++"\u00EF" => "i"
++
++# ĳ => ij
++"\u0133" => "ij"
++
++# ð => d
++"\u00F0" => "d"
++
++# ñ => n
++"\u00F1" => "n"
++
++# ò => o
++"\u00F2" => "o"
++
++# ó => o
++"\u00F3" => "o"
++
++# ô => o
++"\u00F4" => "o"
++
++# õ => o
++"\u00F5" => "o"
++
++# ö => o
++"\u00F6" => "o"
++
++# ø => o
++"\u00F8" => "o"
++
++# œ => oe
++"\u0153" => "oe"
++
++# ß => ss
++"\u00DF" => "ss"
++
++# þ => th
++"\u00FE" => "th"
++
++# ù => u
++"\u00F9" => "u"
++
++# ú => u
++"\u00FA" => "u"
++
++# û => u
++"\u00FB" => "u"
++
++# ü => u
++"\u00FC" => "u"
++
++# ý => y
++"\u00FD" => "y"
++
++# ÿ => y
++"\u00FF" => "y"
++
++# ﬀ => ff
++"\uFB00" => "ff"
++
++# ﬁ => fi
++"\uFB01" => "fi"
++
++# ﬂ => fl
++"\uFB02" => "fl"
++
++# ﬃ => ffi
++"\uFB03" => "ffi"
++
++# ﬄ => ffl
++"\uFB04" => "ffl"
++
++# ﬅ => ft
++"\uFB05" => "ft"
++
++# ﬆ => st
++"\uFB06" => "st"
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/mapping-ISOLatin1Accent.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/protwords.txt
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/protwords.txt	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/protwords.txt	(working copy)
+@@ -0,0 +1,21 @@
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++#-----------------------------------------------------------------------
++# Use a protected word file to protect against the stemmer reducing two
++# unrelated words to the same base word.
++
++# Some non-words that normally won't be encountered,
++# just to test that they won't be stemmed.
++dontstems
++zwhacky
++
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/protwords.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/schema.xml
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/schema.xml	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/schema.xml	(working copy)
+@@ -0,0 +1,303 @@
++<?xml version="1.0" encoding="UTF-8" ?>
++<!--
++ Licensed to the Apache Software Foundation (ASF) under one or more
++ contributor license agreements.  See the NOTICE file distributed with
++ this work for additional information regarding copyright ownership.
++ The ASF licenses this file to You under the Apache License, Version 2.0
++ (the "License"); you may not use this file except in compliance with
++ the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++-->
++
++<!--  
++ This is the Solr schema file. This file should be named "schema.xml" and
++ should be in the conf directory under the solr home
++ (i.e. ./solr/conf/schema.xml by default) 
++ or located where the classloader for the Solr webapp can find it.
++
++ This example schema is the recommended starting point for users.
++ It should be kept correct and concise, usable out-of-the-box.
++
++ For more information, on how to customize this file, please see
++ http://wiki.apache.org/solr/SchemaXml
++-->
++
++<schema name="example" version="1.1">
++  <!-- attribute "name" is the name of this schema and is only used for display purposes.
++       Applications should change this to reflect the nature of the search collection.
++       version="1.1" is Solr's version number for the schema syntax and semantics.  It should
++       not normally be changed by applications.
++       1.0: multiValued attribute did not exist, all fields are multiValued by nature
++       1.1: multiValued attribute introduced, false by default -->
++
++  <types>
++    <!-- field type definitions. The "name" attribute is
++       just a label to be used by field definitions.  The "class"
++       attribute and any other attributes determine the real
++       behavior of the fieldType.
++         Class names starting with "solr" refer to java classes in the
++       org.apache.solr.analysis package.
++    -->
++
++    <!-- The StrField type is not analyzed, but indexed/stored verbatim.  
++       - StrField and TextField support an optional compressThreshold which
++       limits compression (if enabled in the derived fields) to values which
++       exceed a certain size (in characters).
++    -->
++    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
++
++    <!-- boolean type: "true" or "false" -->
++    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
++
++    <!-- The optional sortMissingLast and sortMissingFirst attributes are
++         currently supported on types that are sorted internally as strings.
++       - If sortMissingLast="true", then a sort on this field will cause documents
++         without the field to come after documents with the field,
++         regardless of the requested sort order (asc or desc).
++       - If sortMissingFirst="true", then a sort on this field will cause documents
++         without the field to come before documents with the field,
++         regardless of the requested sort order.
++       - If sortMissingLast="false" and sortMissingFirst="false" (the default),
++         then default lucene sorting will be used which places docs without the
++         field first in an ascending sort and last in a descending sort.
++    -->    
++
++
++    <!-- numeric field types that store and index the text
++         value verbatim (and hence don't support range queries, since the
++         lexicographic ordering isn't equal to the numeric ordering) -->
++    <fieldType name="integer" class="solr.TrieIntField" omitNorms="true"/>
++    <fieldType name="long" class="solr.TrieLongField" omitNorms="true"/>
++    <fieldType name="float" class="solr.TrieFloatField" omitNorms="true"/>
++    <fieldType name="double" class="solr.TrieDoubleField" omitNorms="true"/>
++
++
++
++    <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
++         is a more restricted form of the canonical representation of dateTime
++         http://www.w3.org/TR/xmlschema-2/#dateTime    
++         The trailing "Z" designates UTC time and is mandatory.
++         Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
++         All other components are mandatory.
++
++         Expressions can also be used to denote calculations that should be
++         performed relative to "NOW" to determine the value, ie...
++
++               NOW/HOUR
++                  ... Round to the start of the current hour
++               NOW-1DAY
++                  ... Exactly 1 day prior to now
++               NOW/DAY+6MONTHS+3DAYS
++                  ... 6 months and 3 days in the future from the start of
++                      the current day
++                      
++         Consult the DateField javadocs for more information.
++      -->
++    <fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="true"/>
++
++
++    <!-- The "RandomSortField" is not used to store or search any
++         data.  You can declare fields of this type it in your schema
++         to generate psuedo-random orderings of your docs for sorting 
++         purposes.  The ordering is generated based on the field name 
++         and the version of the index, As long as the index version
++         remains unchanged, and the same field name is reused,
++         the ordering of the docs will be consistent.  
++         If you want differend psuedo-random orderings of documents,
++         for the same version of the index, use a dynamicField and
++         change the name
++     -->
++    <fieldType name="random" class="solr.RandomSortField" indexed="true" />
++
++    <!-- solr.TextField allows the specification of custom text analyzers
++         specified as a tokenizer and a list of token filters. Different
++         analyzers may be specified for indexing and querying.
++
++         The optional positionIncrementGap puts space between multiple fields of
++         this type on the same document, with the purpose of preventing false phrase
++         matching across fields.
++
++         For more info on customizing your analyzer chain, please see
++         http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters
++     -->
++
++    <!-- One can also specify an existing Analyzer class that has a
++         default constructor via the class attribute on the analyzer element
++    <fieldType name="text_greek" class="solr.TextField">
++      <analyzer class="org.apache.lucene.analysis.el.GreekAnalyzer"/>
++    </fieldType>
++    -->
++
++    <!-- A text field that only splits on whitespace for exact matching of words -->
++    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
++      <analyzer>
++        <tokenizer class="solr.MockTokenizerFactory"/>
++      </analyzer>
++    </fieldType>
++
++    <!-- A text field that uses WordDelimiterFilter to enable splitting and matching of
++        words on case-change, alpha numeric boundaries, and non-alphanumeric chars,
++        so that a query of "wifi" or "wi fi" could match a document containing "Wi-Fi".
++        Synonyms and stopwords are customized by external files, and stemming is enabled.
++        Duplicate tokens at the same position (which may result from Stemmed Synonyms or
++        WordDelim parts) are removed.
++        -->
++    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
++      <analyzer type="index">
++        <tokenizer class="solr.MockTokenizerFactory"/>
++        <!-- in this example, we will only use synonyms at query time
++        <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
++        -->
++        <!-- Case insensitive stop word removal.
++             enablePositionIncrements=true ensures that a 'gap' is left to
++             allow for accurate phrase queries.
++        -->
++        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
++        <filter class="solr.LowerCaseFilterFactory"/>
++        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
++        <filter class="solr.PorterStemFilterFactory"/>
++        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
++      </analyzer>
++      <analyzer type="query">
++        <tokenizer class="solr.MockTokenizerFactory"/>
++        <!--<filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>-->
++        <!--<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>-->
++        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
++        <filter class="solr.LowerCaseFilterFactory"/>
++        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
++        <filter class="solr.PorterStemFilterFactory"/>
++        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
++      </analyzer>
++    </fieldType>
++
++
++    <!-- Less flexible matching, but less false matches.  Probably not ideal for product names,
++         but may be good for SKUs.  Can insert dashes in the wrong place and still match. -->
++    <fieldType name="textTight" class="solr.TextField" positionIncrementGap="100" >
++      <analyzer>
++        <tokenizer class="solr.MockTokenizerFactory"/>
++        <!--<filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
++        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>-->
++        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
++        <filter class="solr.LowerCaseFilterFactory"/>
++        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
++        <filter class="solr.EnglishMinimalStemFilterFactory"/>
++        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
++      </analyzer>
++    </fieldType>
++
++    <!--
++     Setup simple analysis for spell checking
++     -->
++    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" >
++      <analyzer>
++        <tokenizer class="solr.StandardTokenizerFactory"/>
++        <filter class="solr.LowerCaseFilterFactory"/>
++        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
++      </analyzer>
++    </fieldType>
++
++    <!-- This is an example of using the KeywordTokenizer along
++         With various TokenFilterFactories to produce a sortable field
++         that does not include some properties of the source text
++      -->
++    <fieldType name="alphaOnlySort" class="solr.TextField" sortMissingLast="true" omitNorms="true">
++      <analyzer>
++        <!-- KeywordTokenizer does no actual tokenizing, so the entire
++             input string is preserved as a single token
++          -->
++        <tokenizer class="solr.MockTokenizerFactory" pattern="keyword"/>
++        <!-- The LowerCase TokenFilter does what you expect, which can be
++             when you want your sorting to be case insensitive
++          -->
++        <filter class="solr.LowerCaseFilterFactory" />
++        <!-- The TrimFilter removes any leading or trailing whitespace -->
++        <filter class="solr.TrimFilterFactory" />
++        <!-- The PatternReplaceFilter gives you the flexibility to use
++             Java Regular expression to replace any sequence of characters
++             matching a pattern with an arbitrary replacement string, 
++             which may include back refrences to portions of the orriginal
++             string matched by the pattern.
++             
++             See the Java Regular Expression documentation for more
++             infomation on pattern and replacement string syntax.
++             
++             http://java.sun.com/j2se/1.6.0/docs/api/java/util/regex/package-summary.html
++          -->
++        <filter class="solr.PatternReplaceFilterFactory"
++                pattern="([^a-z])" replacement="" replace="all"
++        />
++      </analyzer>
++    </fieldType>
++
++    <!-- since fields of this type are by default not stored or indexed, any data added to 
++         them will be ignored outright 
++     --> 
++    <fieldtype name="ignored" stored="false" indexed="false" class="solr.StrField" /> 
++
++ </types>
++
++
++ <fields>
++   <!-- Valid attributes for fields:
++     name: mandatory - the name for the field
++     type: mandatory - the name of a previously defined type from the <types> section
++     indexed: true if this field should be indexed (searchable or sortable)
++     stored: true if this field should be retrievable
++     multiValued: true if this field may contain multiple values per document
++     omitNorms: (expert) set to true to omit the norms associated with
++       this field (this disables length normalization and index-time
++       boosting for the field, and saves some memory).  Only full-text
++       fields or fields that need an index-time boost need norms.
++     termVectors: [false] set to true to store the term vector for a given field.
++       When using MoreLikeThis, fields used for similarity should be stored for 
++       best performance.
++   -->
++
++   <field name="id" type="string" indexed="true" stored="true" required="true" />
++   <field name="colour" type="string" indexed="true" stored="true" required="true" />
++   <field name="letter" type="string" indexed="true" stored="true" required="true" multiValued="true"/>
++   <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
++
++   <!-- uncomment the following to ignore any fields that don't already match an existing 
++        field name or dynamic field, rather than reporting them as an error. 
++        alternately, change the type="ignored" to some other type e.g. "text" if you want 
++        unknown fields indexed and/or stored by default --> 
++   <!--dynamicField name="*" type="ignored" /-->
++   
++ </fields>
++
++ <!-- Field to use to determine and enforce document uniqueness. 
++      Unless this field is marked with required="false", it will be a required field
++   -->
++ <uniqueKey>id</uniqueKey>
++
++ <!-- field for the QueryParser to use when an explicit fieldname is absent -->
++ <defaultSearchField>text</defaultSearchField>
++
++ <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
++ <solrQueryParser defaultOperator="OR"/>
++
++ <!-- Similarity is the scoring routine for each document vs. a query.
++      A custom similarity may be specified here, but the default is fine
++      for most applications.  -->
++ <!-- <similarity class="org.apache.lucene.search.DefaultSimilarity"/> -->
++ <!-- ... OR ...
++      Specify a SimilarityFactory class name implementation
++      allowing parameters to be used.
++ -->
++ <!--
++ <similarity class="com.example.solr.CustomSimilarityFactory">
++   <str name="paramkey">param value</str>
++ </similarity>
++ -->
++
++
++</schema>
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/schema.xml
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/solrconfig.xml
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/solrconfig.xml	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/solrconfig.xml	(working copy)
+@@ -0,0 +1,458 @@
++<?xml version="1.0" encoding="UTF-8" ?>
++<!--
++ Licensed to the Apache Software Foundation (ASF) under one or more
++ contributor license agreements.  See the NOTICE file distributed with
++ this work for additional information regarding copyright ownership.
++ The ASF licenses this file to You under the Apache License, Version 2.0
++ (the "License"); you may not use this file except in compliance with
++ the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++-->
++
++<config>
++  <luceneMatchVersion>${tests.luceneMatchVersion:LUCENE_CURRENT}</luceneMatchVersion>
++
++  <!-- Used to specify an alternate directory to hold all index data
++       other than the default ./data under the Solr home.
++       If replication is in use, this should match the replication configuration. -->
++  <dataDir>${solr.data.dir:}</dataDir>
++
++  <directoryFactory name="DirectoryFactory" class="${solr.directoryFactory:solr.RAMDirectoryFactory}"/>
++
++  <indexConfig>
++    <lockType>single</lockType>
++  </indexConfig>
++  
++  <!--  Enables JMX if and only if an existing MBeanServer is found, use 
++      this if you want to configure JMX through JVM parameters. Remove
++      this to disable exposing Solr configuration and statistics to JMX.
++      
++    If you want to connect to a particular server, specify the agentId
++    e.g. <jmx agentId="myAgent" />
++    
++    If you want to start a new MBeanServer, specify the serviceUrl
++    e.g <jmx serviceurl="service:jmx:rmi:///jndi/rmi://localhost:9999/solr" />
++    
++    For more details see http://wiki.apache.org/solr/SolrJmx
++  -->
++  <jmx />
++
++  <!-- the default high-performance update handler -->
++  <updateHandler class="solr.DirectUpdateHandler2">
++
++    <!-- A prefix of "solr." for class names is an alias that
++         causes solr to search appropriate packages, including
++         org.apache.solr.(search|update|request|core|analysis)
++     -->
++
++    <!-- Perform a <commit/> automatically under certain conditions:
++         maxDocs - number of updates since last commit is greater than this
++         maxTime - oldest uncommited update (in ms) is this long ago
++    <autoCommit> 
++      <maxDocs>10000</maxDocs>
++      <maxTime>1000</maxTime> 
++    </autoCommit>
++    -->
++
++    <!-- The RunExecutableListener executes an external command.
++         exe - the name of the executable to run
++         dir - dir to use as the current working directory. default="."
++         wait - the calling thread waits until the executable returns. default="true"
++         args - the arguments to pass to the program.  default=nothing
++         env - environment variables to set.  default=nothing
++      -->
++    <!-- A postCommit event is fired after every commit or optimize command
++    <listener event="postCommit" class="solr.RunExecutableListener">
++      <str name="exe">solr/bin/snapshooter</str>
++      <str name="dir">.</str>
++      <bool name="wait">true</bool>
++      <arr name="args"> <str>arg1</str> <str>arg2</str> </arr>
++      <arr name="env"> <str>MYVAR=val1</str> </arr>
++    </listener>
++    -->
++    <!-- A postOptimize event is fired only after every optimize command, useful
++         in conjunction with index distribution to only distribute optimized indicies 
++    <listener event="postOptimize" class="solr.RunExecutableListener">
++      <str name="exe">snapshooter</str>
++      <str name="dir">solr/bin</str>
++      <bool name="wait">true</bool>
++    </listener>
++    -->
++
++  </updateHandler>
++
++
++  <query>
++    <!-- Maximum number of clauses in a boolean query... can affect
++        range or prefix queries that expand to big boolean
++        queries.  An exception is thrown if exceeded.  -->
++    <maxBooleanClauses>1024</maxBooleanClauses>
++
++    
++    <!-- Cache used by SolrIndexSearcher for filters (DocSets),
++         unordered sets of *all* documents that match a query.
++         When a new searcher is opened, its caches may be prepopulated
++         or "autowarmed" using data from caches in the old searcher.
++         autowarmCount is the number of items to prepopulate.  For LRUCache,
++         the autowarmed items will be the most recently accessed items.
++       Parameters:
++         class - the SolrCache implementation (currently only LRUCache)
++         size - the maximum number of entries in the cache
++         initialSize - the initial capacity (number of entries) of
++           the cache.  (seel java.util.HashMap)
++         autowarmCount - the number of entries to prepopulate from
++           and old cache.
++         -->
++    <filterCache
++      class="solr.LRUCache"
++      size="512"
++      initialSize="512"
++      autowarmCount="128"/>
++
++   <!-- queryResultCache caches results of searches - ordered lists of
++         document ids (DocList) based on a query, a sort, and the range
++         of documents requested.  -->
++    <queryResultCache
++      class="solr.LRUCache"
++      size="512"
++      initialSize="512"
++      autowarmCount="32"/>
++
++  <!-- documentCache caches Lucene Document objects (the stored fields for each document).
++       Since Lucene internal document ids are transient, this cache will not be autowarmed.  -->
++    <documentCache
++      class="solr.LRUCache"
++      size="512"
++      initialSize="512"
++      autowarmCount="0"/>
++
++    <!-- If true, stored fields that are not requested will be loaded lazily.
++
++    This can result in a significant speed improvement if the usual case is to
++    not load all stored fields, especially if the skipped fields are large compressed
++    text fields.
++    -->
++    <enableLazyFieldLoading>true</enableLazyFieldLoading>
++
++    <!-- Example of a generic cache.  These caches may be accessed by name
++         through SolrIndexSearcher.getCache(),cacheLookup(), and cacheInsert().
++         The purpose is to enable easy caching of user/application level data.
++         The regenerator argument should be specified as an implementation
++         of solr.search.CacheRegenerator if autowarming is desired.  -->
++    <!--
++    <cache name="myUserCache"
++      class="solr.LRUCache"
++      size="4096"
++      initialSize="1024"
++      autowarmCount="1024"
++      regenerator="org.mycompany.mypackage.MyRegenerator"
++      />
++    -->
++
++   <!-- An optimization that attempts to use a filter to satisfy a search.
++         If the requested sort does not include score, then the filterCache
++         will be checked for a filter matching the query. If found, the filter
++         will be used as the source of document ids, and then the sort will be
++         applied to that.
++    <useFilterForSortedQuery>true</useFilterForSortedQuery>
++   -->
++
++   <!-- An optimization for use with the queryResultCache.  When a search
++         is requested, a superset of the requested number of document ids
++         are collected.  For example, if a search for a particular query
++         requests matching documents 10 through 19, and queryWindowSize is 50,
++         then documents 0 through 49 will be collected and cached.  Any further
++         requests in that range can be satisfied via the cache.  -->
++    <queryResultWindowSize>50</queryResultWindowSize>
++    
++    <!-- Maximum number of documents to cache for any entry in the
++         queryResultCache. -->
++    <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
++
++    <!-- This entry enables an int hash representation for filters (DocSets)
++         when the number of items in the set is less than maxSize.  For smaller
++         sets, this representation is more memory efficient, more efficient to
++         iterate over, and faster to take intersections.  -->
++    <HashDocSet maxSize="3000" loadFactor="0.75"/>
++
++    <!-- a newSearcher event is fired whenever a new searcher is being prepared
++         and there is a current searcher handling requests (aka registered). -->
++    <!-- QuerySenderListener takes an array of NamedList and executes a
++         local query request for each NamedList in sequence. 
++    <listener event="newSearcher" class="solr.QuerySenderListener">
++      <arr name="queries">
++        <lst> <str name="q">solr</str> <str name="start">0</str> <str name="rows">10</str> </lst>
++        <lst> <str name="q">rocks</str> <str name="start">0</str> <str name="rows">10</str> </lst>
++        <lst><str name="q">static newSearcher warming query from solrconfig.xml</str></lst>
++      </arr>
++    </listener> -->
++
++    <!-- a firstSearcher event is fired whenever a new searcher is being
++         prepared but there is no current registered searcher to handle
++         requests or to gain autowarming data from. 
++    <listener event="firstSearcher" class="solr.QuerySenderListener">
++      <arr name="queries">
++        <lst> <str name="q">fast_warm</str> <str name="start">0</str> <str name="rows">10</str> </lst>
++        <lst><str name="q">static firstSearcher warming query from solrconfig.xml</str></lst>
++      </arr>
++    </listener> -->
++
++    <!-- If a search request comes in and there is no current registered searcher,
++         then immediately register the still warming searcher and use it.  If
++         "false" then all requests will block until the first searcher is done
++         warming. -->
++    <useColdSearcher>false</useColdSearcher>
++
++    <!-- Maximum number of searchers that may be warming in the background
++      concurrently.  An error is returned if this limit is exceeded. Recommend
++      1-2 for read-only slaves, higher for masters w/o cache warming. -->
++    <maxWarmingSearchers>2</maxWarmingSearchers>
++
++  </query>
++
++  <!-- 
++    Let the dispatch filter handler /select?qt=XXX
++    handleSelect=true will use consistent error handling for /select and /update
++    handleSelect=false will use solr1.1 style error formatting
++    -->
++  <requestDispatcher handleSelect="true" >
++    <!--Make sure your system has some authentication before enabling remote streaming!  -->
++    <requestParsers enableRemoteStreaming="false" multipartUploadLimitInKB="2048" />
++        
++    <!-- Set HTTP caching related parameters (for proxy caches and clients).
++          
++         To get the behaviour of Solr 1.2 (ie: no caching related headers)
++         use the never304="true" option and do not specify a value for
++         <cacheControl>
++    -->
++    <!-- <httpCaching never304="true"> -->
++    <httpCaching lastModifiedFrom="openTime"
++                 etagSeed="Solr">
++       <!-- lastModFrom="openTime" is the default, the Last-Modified value
++            (and validation against If-Modified-Since requests) will all be
++            relative to when the current Searcher was opened.
++            You can change it to lastModFrom="dirLastMod" if you want the
++            value to exactly corrispond to when the physical index was last
++            modified.
++               
++            etagSeed="..." is an option you can change to force the ETag
++            header (and validation against If-None-Match requests) to be
++            differnet even if the index has not changed (ie: when making
++            significant changes to your config file)
++
++            lastModifiedFrom and etagSeed are both ignored if you use the
++            never304="true" option.
++       -->
++       <!-- If you include a <cacheControl> directive, it will be used to
++            generate a Cache-Control header, as well as an Expires header
++            if the value contains "max-age="
++               
++            By default, no Cache-Control header is generated.
++
++            You can use the <cacheControl> option even if you have set
++            never304="true"
++       -->
++       <!-- <cacheControl>max-age=30, public</cacheControl> -->
++    </httpCaching>
++  </requestDispatcher>
++
++  <valueSourceParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinValueSourceParser">
++    <str name="xJoinSearchComponent">xjoin</str>
++    <double name="defaultValue">1.0</double>
++  </valueSourceParser>
++
++  <queryParser name="xjoin" class="org.apache.solr.search.xjoin.XJoinQParserPlugin">
++    <str name="xJoinSearchComponent">xjoin</str>
++  </queryParser>
++
++  <searchComponent name="xjoin0" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
++    <str name="joinField">id</str>
++    <lst name="external">
++      <str name="string">component with no results</str>
++    </lst>
++  </searchComponent>
++
++  <searchComponent name="xjoin" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
++    <str name="joinField">id</str>
++    <lst name="external">
++      <str name="values">1,3,8</str>
++      <str name="missingId">2</str>
++      <str name="string">a test string</str>
++    </lst>
++  </searchComponent>
++
++  <searchComponent name="xjoin2" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
++    <str name="joinField">id</str>
++    <lst name="external">
++      <str name="values">3,8</str>
++      <str name="missingId">1</str>
++      <str name="string">the second component</str>
++    </lst>
++  </searchComponent>
++
++  <searchComponent name="xjoin3" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
++    <str name="joinField">colour</str>
++    <lst name="external">
++      <str name="values">red,pink</str>
++      <str name="string">component with different join field</str>
++    </lst>
++  </searchComponent>
++
++  <searchComponent name="xjoin4" class="org.apache.solr.search.xjoin.XJoinSearchComponent">
++    <str name="factoryClass">org.apache.solr.search.xjoin.SimpleXJoinResultsFactory</str>
++    <str name="joinField">letter</str>
++    <lst name="external">
++      <str name="values">alpha,gamma</str>
++      <str name="string">component with a multi-valued join field</str>
++    </lst>
++  </searchComponent>
++      
++  <!-- requestHandler plugins... incoming queries will be dispatched to the
++     correct handler based on the path or the 'qt' param.
++     Names starting with a '/' are accessed with the a path equal to the 
++     registered name.  Names without a leading '/' are accessed with:
++      http://host/app/select?qt=name
++     If no qt is defined, the requestHandler that declares default="true"
++     will be used.
++  -->
++  <requestHandler name="standard" class="solr.SearchHandler" default="true">
++    <!-- default values for query parameters -->
++    <lst name="defaults">
++      <str name="echoParams">explicit</str>
++      <bool name="xjoin">true</bool>
++      <bool name="xjoin4">false</bool>
++    </lst>
++    <arr name="first-components">
++      <str>xjoin</str>
++      <str>xjoin4</str>
++    </arr>
++    <arr name="last-components">
++      <str>xjoin</str>
++      <str>xjoin4</str>
++    </arr>
++  </requestHandler> 
++
++  
++
++  <!-- Update request handler.  
++  
++       Note: Since solr1.1 requestHandlers requires a valid content type header if posted in 
++       the body. For example, curl now requires: -H 'Content-type:text/xml; charset=utf-8'
++       The response format differs from solr1.1 formatting and returns a standard error code.
++       
++       To enable solr1.1 behavior, remove the /update handler or change its path
++    -->
++  <requestHandler name="/update" class="solr.UpdateRequestHandler"  />
++
++
++  <!-- 
++   Admin Handlers - This will register all the standard admin RequestHandlers.  Adding 
++   this single handler is equivolent to registering:
++   
++  <requestHandler name="/admin/luke"       class="org.apache.solr.handler.admin.LukeRequestHandler" />
++  <requestHandler name="/admin/system"     class="org.apache.solr.handler.admin.SystemInfoHandler" />
++  <requestHandler name="/admin/plugins"    class="org.apache.solr.handler.admin.PluginInfoHandler" />
++  <requestHandler name="/admin/threads"    class="org.apache.solr.handler.admin.ThreadDumpHandler" />
++  <requestHandler name="/admin/properties" class="org.apache.solr.handler.admin.PropertiesRequestHandler" />
++  <requestHandler name="/admin/file"       class="org.apache.solr.handler.admin.ShowFileRequestHandler" >
++  
++  If you wish to hide files under ${solr.home}/conf, explicitly register the ShowFileRequestHandler using:
++  <requestHandler name="/admin/file" class="org.apache.solr.handler.admin.ShowFileRequestHandler" >
++    <lst name="invariants">
++     <str name="hidden">synonyms.txt</str> 
++     <str name="hidden">anotherfile.txt</str> 
++    </lst>
++  </requestHandler>
++  -->
++  <requestHandler name="/admin/" class="org.apache.solr.handler.admin.AdminHandlers" />
++  
++  <!-- Echo the request contents back to the client -->
++  <requestHandler name="/debug/dump" class="solr.DumpRequestHandler" >
++    <lst name="defaults">
++     <str name="echoParams">explicit</str> <!-- for all params (including the default etc) use: 'all' -->
++     <str name="echoHandler">true</str>
++    </lst>
++  </requestHandler>
++  
++  <highlighting>
++   <!-- Configure the standard fragmenter -->
++   <!-- This could most likely be commented out in the "default" case -->
++   <fragmenter name="gap" class="org.apache.solr.highlight.GapFragmenter" default="true">
++    <lst name="defaults">
++     <int name="hl.fragsize">100</int>
++    </lst>
++   </fragmenter>
++
++   <!-- A regular-expression-based fragmenter (f.i., for sentence extraction) -->
++   <fragmenter name="regex" class="org.apache.solr.highlight.RegexFragmenter">
++    <lst name="defaults">
++      <!-- slightly smaller fragsizes work better because of slop -->
++      <int name="hl.fragsize">70</int>
++      <!-- allow 50% slop on fragment sizes -->
++      <float name="hl.regex.slop">0.5</float> 
++      <!-- a basic sentence pattern -->
++      <str name="hl.regex.pattern">[-\w ,/\n\"']{20,200}</str>
++    </lst>
++   </fragmenter>
++   
++   <!-- Configure the standard formatter -->
++   <formatter name="html" class="org.apache.solr.highlight.HtmlFormatter" default="true">
++    <lst name="defaults">
++     <str name="hl.simple.pre"><![CDATA[<em>]]></str>
++     <str name="hl.simple.post"><![CDATA[</em>]]></str>
++    </lst>
++   </formatter>
++  </highlighting>
++  
++  
++  <!-- queryResponseWriter plugins... query responses will be written using the
++    writer specified by the 'wt' request parameter matching the name of a registered
++    writer.
++    The "default" writer is the default and will be used if 'wt' is not specified 
++    in the request. XMLResponseWriter will be used if nothing is specified here.
++    The json, python, and ruby writers are also available by default.
++
++    <queryResponseWriter name="xml" class="solr.XMLResponseWriter" default="true"/>
++    <queryResponseWriter name="json" class="solr.JSONResponseWriter"/>
++    <queryResponseWriter name="python" class="solr.PythonResponseWriter"/>
++    <queryResponseWriter name="ruby" class="solr.RubyResponseWriter"/>
++    <queryResponseWriter name="php" class="solr.PHPResponseWriter"/>
++    <queryResponseWriter name="phps" class="solr.PHPSerializedResponseWriter"/>
++
++    <queryResponseWriter name="custom" class="com.example.MyResponseWriter"/>
++  -->
++
++  <!-- XSLT response writer transforms the XML output by any xslt file found
++       in Solr's conf/xslt directory.  Changes to xslt files are checked for
++       every xsltCacheLifetimeSeconds.  
++   -->
++  <queryResponseWriter name="xslt" class="solr.XSLTResponseWriter">
++    <int name="xsltCacheLifetimeSeconds">5</int>
++  </queryResponseWriter> 
++
++
++  <!-- example of registering a query parser
++  <queryParser name="lucene" class="org.apache.solr.search.LuceneQParserPlugin"/>
++  -->
++
++  <!-- example of registering a custom function parser 
++  <valueSourceParser name="myfunc" class="com.mycompany.MyValueSourceParser" />
++  -->
++    
++  <!-- config for the admin interface --> 
++  <admin>
++    <defaultQuery>solr</defaultQuery>
++  </admin>
++
++</config>
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/solrconfig.xml
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/spellings.txt
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/spellings.txt	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/spellings.txt	(working copy)
+@@ -0,0 +1,2 @@
++pizza
++history
+\ No newline at end of file
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/spellings.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/stopwords.txt
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/stopwords.txt	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/stopwords.txt	(working copy)
+@@ -0,0 +1,59 @@
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++#-----------------------------------------------------------------------
++# a couple of test stopwords to test that the words are really being
++# configured from this file:
++stopworda
++stopwordb
++
++#Standard english stop words taken from Lucene's StopAnalyzer
++a
++an
++and
++are
++as
++at
++be
++but
++by
++for
++if
++in
++into
++is
++it
++no
++not
++of
++on
++or
++s
++such
++t
++that
++the
++their
++then
++there
++these
++they
++this
++to
++was
++will
++with
++solrownstopword
++
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/stopwords.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/synonyms.txt
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/synonyms.txt	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/synonyms.txt	(working copy)
+@@ -0,0 +1,31 @@
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++#-----------------------------------------------------------------------
++#some test synonym mappings unlikely to appear in real input text
++aaa => aaaa
++bbb => bbbb1 bbbb2
++ccc => cccc1,cccc2
++a\=>a => b\=>b
++a\,a => b\,b
++fooaaa,baraaa,bazaaa
++
++# Some synonym groups specific to this example
++GB,gib,gigabyte,gigabytes
++MB,mib,megabyte,megabytes
++Television, Televisions, TV, TVs
++#notice we use "gib" instead of "GiB" so any WordDelimiterFilter coming
++#after us won't split it into two words.
++
++# Synonym mappings can be used for spelling correction too
++pixima => pixma
++
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/collection1/conf/synonyms.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property
+Index: solr/contrib/xjoin/src/test-files/xjoin/solr/solr.xml
+===================================================================
+--- solr/contrib/xjoin/src/test-files/xjoin/solr/solr.xml	(revision 0)
++++ solr/contrib/xjoin/src/test-files/xjoin/solr/solr.xml	(working copy)
+@@ -0,0 +1,33 @@
++<?xml version="1.0" encoding="UTF-8" ?>
++<!--
++ Licensed to the Apache Software Foundation (ASF) under one or more
++ contributor license agreements.  See the NOTICE file distributed with
++ this work for additional information regarding copyright ownership.
++ The ASF licenses this file to You under the Apache License, Version 2.0
++ (the "License"); you may not use this file except in compliance with
++ the License.  You may obtain a copy of the License at
++
++     http://www.apache.org/licenses/LICENSE-2.0
++
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++-->
++
++<!--
++ solr.xml mimicking the old default solr.xml
++-->
++
++<solr persistent="false">
++  <cores adminPath="/admin/cores" defaultCoreName="collection1"
++         host="${host:}" hostPort="${hostPort:}" hostContext="${hostContext:}"
++         zkClientTimeout="${zkClientTimeout:15000}">
++    <core name="collection1" shard="${shard:}" collection="${collection:collection1}" instanceDir="collection1"/>
++    
++    <shardHandlerFactory name="shardHandlerFactory" class="HttpShardHandlerFactory">
++     <str name="urlScheme">${urlScheme:}</str>
++     </shardHandlerFactory>
++  </cores>
++</solr>
+
+Property changes on: solr/contrib/xjoin/src/test-files/xjoin/solr/solr.xml
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+\ No newline at end of property

@@ -1,0 +1,128 @@
+2016-02-08 23:22:31.419 INFO  (main) [   ] o.e.j.u.log Logging initialized @134ms
+2016-02-08 23:22:31.495 INFO  (main) [   ] o.e.j.s.Server jetty-9.2.11.v20150529
+2016-02-08 23:22:31.503 WARN  (main) [   ] o.e.j.s.h.RequestLogHandler !RequestLog
+2016-02-08 23:22:31.504 INFO  (main) [   ] o.e.j.d.p.ScanningAppProvider Deployment monitor [file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/contexts/] at interval 0
+2016-02-08 23:22:31.683 INFO  (main) [   ] o.e.j.w.StandardDescriptorProcessor NO JSP Support for /solr, did not find org.apache.jasper.servlet.JspServlet
+2016-02-08 23:22:31.688 WARN  (main) [   ] o.e.j.s.SecurityHandler ServletContext@o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,STARTING}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp} has uncovered http methods for path: /
+2016-02-08 23:22:31.691 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter SolrDispatchFilter.init(): WebAppClassLoader=1459672753@5700d6b1
+2016-02-08 23:22:31.698 INFO  (main) [   ] o.a.s.c.SolrResourceLoader JNDI not configured for solr (NoInitialContextEx)
+2016-02-08 23:22:31.698 INFO  (main) [   ] o.a.s.c.SolrResourceLoader using system property solr.solr.home: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:22:31.699 INFO  (main) [   ] o.a.s.c.SolrResourceLoader new SolrResourceLoader for directory: '/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/'
+2016-02-08 23:22:31.763 INFO  (main) [   ] o.a.s.c.SolrXmlConfig Loading container configuration from /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/solr.xml
+2016-02-08 23:22:31.795 INFO  (main) [   ] o.a.s.c.CoresLocator Config-defined core root directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:22:31.806 INFO  (main) [   ] o.a.s.c.CoreContainer New CoreContainer 576020159
+2016-02-08 23:22:31.806 INFO  (main) [   ] o.a.s.c.CoreContainer Loading cores into CoreContainer [instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/]
+2016-02-08 23:22:31.806 INFO  (main) [   ] o.a.s.c.CoreContainer loading shared library: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/lib
+2016-02-08 23:22:31.806 WARN  (main) [   ] o.a.s.c.SolrResourceLoader Can't find (or read) directory to add to classloader: lib (resolved as: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/lib).
+2016-02-08 23:22:31.814 INFO  (main) [   ] o.a.s.h.c.HttpShardHandlerFactory created with socketTimeout : 600000,connTimeout : 60000,maxConnectionsPerHost : 20,maxConnections : 10000,corePoolSize : 0,maximumPoolSize : 2147483647,maxThreadIdleTime : 5,sizeOfQueue : -1,fairnessPolicy : false,useRetries : false,
+2016-02-08 23:22:31.914 INFO  (main) [   ] o.a.s.u.UpdateShardHandler Creating UpdateShardHandler HTTP client with params: socketTimeout=600000&connTimeout=60000&retry=true
+2016-02-08 23:22:31.915 INFO  (main) [   ] o.a.s.l.LogWatcher SLF4J impl is org.slf4j.impl.Log4jLoggerFactory
+2016-02-08 23:22:31.916 INFO  (main) [   ] o.a.s.l.LogWatcher Registering Log Listener [Log4j (org.slf4j.impl.Log4jLoggerFactory)]
+2016-02-08 23:22:31.916 INFO  (main) [   ] o.a.s.c.CoreContainer Security conf doesn't exist. Skipping setup for authorization module.
+2016-02-08 23:22:31.916 INFO  (main) [   ] o.a.s.c.CoreContainer No authentication plugin used.
+2016-02-08 23:22:32.052 INFO  (main) [   ] o.a.s.c.CoresLocator Looking for core definitions underneath /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:22:32.054 INFO  (main) [   ] o.a.s.c.CoresLocator Found 0 core definitions
+2016-02-08 23:22:32.056 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter user.dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server
+2016-02-08 23:22:32.056 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter SolrDispatchFilter.init() done
+2016-02-08 23:22:32.062 INFO  (main) [   ] o.e.j.s.h.ContextHandler Started o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,AVAILABLE}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp}
+2016-02-08 23:22:32.066 INFO  (main) [   ] o.e.j.s.ServerConnector Started ServerConnector@6340e5f0{HTTP/1.1}{0.0.0.0:8983}
+2016-02-08 23:22:32.067 INFO  (main) [   ] o.e.j.s.Server Started @782ms
+2016-02-08 23:26:36.409 INFO  (qtp59559151-14) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1454973996378} status=0 QTime=20 
+2016-02-08 23:26:36.451 INFO  (qtp59559151-18) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/info/system params={wt=json&_=1454973996426} status=0 QTime=9 
+2016-02-08 23:26:42.299 INFO  (qtp59559151-20) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974002288} status=0 QTime=0 
+2016-02-08 23:27:18.342 INFO  (qtp59559151-16) [   ] o.a.s.h.a.CoreAdminHandler core create command schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974038329
+2016-02-08 23:27:18.344 INFO  (qtp59559151-16) [   ] o.a.s.c.SolrCore Created CoreDescriptor: {name=products, config=solrconfig.xml, transient=false, schema=schema.xml, loadOnStartup=true, configSetProperties=configsetprops.json, instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog, absoluteInstDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/, dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog}
+2016-02-08 23:27:18.344 INFO  (qtp59559151-16) [   ] o.a.s.c.SolrResourceLoader new SolrResourceLoader for directory: '/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/'
+2016-02-08 23:27:18.362 INFO  (qtp59559151-16) [   ] o.a.s.c.SolrConfig current version of requestparams : -1
+2016-02-08 23:27:18.371 INFO  (qtp59559151-16) [   ] o.a.s.u.SolrIndexConfig IndexWriter infoStream solr logging is enabled
+2016-02-08 23:27:18.373 INFO  (qtp59559151-16) [   ] o.a.s.c.SolrConfig Using Lucene MatchVersion: 5.3.3
+2016-02-08 23:27:18.400 INFO  (qtp59559151-16) [   ] o.a.s.c.Config Loaded SolrConfig: solrconfig.xml
+2016-02-08 23:27:18.403 INFO  (qtp59559151-16) [   ] o.a.s.s.IndexSchema Reading Solr Schema from /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/schema.xml
+2016-02-08 23:27:18.416 INFO  (qtp59559151-16) [   ] o.a.s.s.IndexSchema [products] Schema name=example
+2016-02-08 23:27:18.524 INFO  (qtp59559151-16) [   ] o.a.s.s.IndexSchema unique key field: id
+2016-02-08 23:27:18.559 INFO  (qtp59559151-16) [   ] o.a.s.s.FileExchangeRateProvider Reloading exchange rates from file currency.xml
+2016-02-08 23:27:18.562 INFO  (qtp59559151-16) [   ] o.a.s.s.FileExchangeRateProvider Reloading exchange rates from file currency.xml
+2016-02-08 23:27:18.565 INFO  (qtp59559151-16) [   ] o.a.s.c.ConfigSetProperties Did not find ConfigSet properties, assuming default properties: Can't find resource 'configsetprops.json' in classpath or '/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf'
+2016-02-08 23:27:18.565 INFO  (qtp59559151-16) [   ] o.a.s.c.CoreContainer Creating SolrCore 'products' using configuration from instancedir /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/
+2016-02-08 23:27:18.566 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore solr.NRTCachingDirectoryFactory
+2016-02-08 23:27:18.571 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore [[products] ] Opening new SolrCore at [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/], dataDir=[null]
+2016-02-08 23:27:18.572 INFO  (qtp59559151-16) [   x:products] o.a.s.c.JmxMonitoredMap No JMX servers found, not exposing Solr information with JMX.
+2016-02-08 23:27:18.578 INFO  (qtp59559151-16) [   x:products] o.a.s.c.CachingDirectoryFactory return new directory for /home/jadams/projects/eezy/solr-redis-xjoin-example/blog
+2016-02-08 23:27:18.579 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore New index directory detected: old=null new=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index/
+2016-02-08 23:27:18.579 WARN  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore [products] Solr index directory '/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index' doesn't exist. Creating new index...
+2016-02-08 23:27:18.584 INFO  (qtp59559151-16) [   x:products] o.a.s.c.CachingDirectoryFactory return new directory for /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+2016-02-08 23:27:18.613 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore SolrDeletionPolicy.onCommit: commits: num=1
+	commit{dir=NRTCachingDirectory(MMapDirectory@/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index lockFactory=org.apache.lucene.store.NativeFSLockFactory@7b004064; maxCacheMB=48.0 maxMergeSizeMB=4.0),segFN=segments_1,generation=1}
+2016-02-08 23:27:18.613 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore newest commit generation = 1
+2016-02-08 23:27:18.614 INFO  (OldIndexDirectoryCleanupThreadForCore-products) [   x:products] o.a.s.c.SolrCore Looking for old index directories to cleanup for core products in /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/
+2016-02-08 23:27:18.645 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore no updateRequestProcessorChain defined as default, creating implicit default
+2016-02-08 23:27:18.657 INFO  (qtp59559151-16) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:27:18.658 INFO  (qtp59559151-16) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:27:18.658 INFO  (qtp59559151-16) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:27:18.659 INFO  (qtp59559151-16) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:27:18.822 INFO  (qtp59559151-16) [   x:products] o.a.s.c.PluginBag requestHandler : '/analysis/field' created with startup=lazy 
+2016-02-08 23:27:18.822 INFO  (qtp59559151-16) [   x:products] o.a.s.c.PluginBag requestHandler : '/analysis/document' created with startup=lazy 
+2016-02-08 23:27:18.823 INFO  (qtp59559151-16) [   x:products] o.a.s.c.PluginBag requestHandler : '/terms' created with startup=lazy 
+2016-02-08 23:27:18.823 INFO  (qtp59559151-16) [   x:products] o.a.s.c.RequestHandlers Registered paths: /admin/mbeans,/update/json/docs,/admin/luke,/export,/get,/admin/properties,/update/json,/admin/threads,/query,/analysis/field,/analysis/document,/update/csv,/select,/admin/segments,/admin/system,/replication,/config,/schema,/admin/plugins,/admin/logging,/admin/ping,/update,/admin/file,/debug/dump,/terms
+2016-02-08 23:27:18.824 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore Using default statsCache cache: org.apache.solr.search.stats.LocalStatsCache
+2016-02-08 23:27:18.828 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateHandler Using UpdateLog implementation: org.apache.solr.update.UpdateLog
+2016-02-08 23:27:18.828 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateLog Initializing UpdateLog: dataDir= defaultSyncLevel=FLUSH numRecordsToKeep=100 maxNumLogsToKeep=10 numVersionBuckets=65536
+2016-02-08 23:27:18.832 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore Hard AutoCommit: if uncommited for 15000ms; 
+2016-02-08 23:27:18.833 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore Soft AutoCommit: disabled
+2016-02-08 23:27:18.835 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore SolrDeletionPolicy.onInit: commits: num=1
+	commit{dir=NRTCachingDirectory(MMapDirectory@/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index lockFactory=org.apache.lucene.store.NativeFSLockFactory@7b004064; maxCacheMB=48.0 maxMergeSizeMB=4.0),segFN=segments_1,generation=1}
+2016-02-08 23:27:18.835 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore newest commit generation = 1
+2016-02-08 23:27:18.840 INFO  (qtp59559151-16) [   x:products] o.a.s.s.SolrIndexSearcher Opening Searcher@39ca3634[products] main
+2016-02-08 23:27:18.843 INFO  (qtp59559151-16) [   x:products] o.a.s.r.ManagedResourceStorage File-based storage initialized to use dir: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:27:18.843 INFO  (qtp59559151-16) [   x:products] o.a.s.r.RestManager Initializing RestManager with initArgs: {storageDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf}
+2016-02-08 23:27:18.847 INFO  (qtp59559151-16) [   x:products] o.a.s.r.ManagedResourceStorage Reading _rest_managed.json using file:dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:27:18.847 INFO  (qtp59559151-16) [   x:products] o.a.s.r.ManagedResourceStorage Loaded LinkedHashMap at path _rest_managed.json using file:dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:27:18.847 INFO  (qtp59559151-16) [   x:products] o.a.s.r.ManagedResource Loaded initArgs {} for /rest/managed
+2016-02-08 23:27:18.848 INFO  (qtp59559151-16) [   x:products] o.a.s.r.RestManager Initializing 0 registered ManagedResources
+2016-02-08 23:27:18.850 INFO  (qtp59559151-16) [   x:products] o.a.s.h.ReplicationHandler Commits will be reserved for  10000
+2016-02-08 23:27:18.851 INFO  (searcherExecutor-7-thread-1-processing-x:products) [   x:products] o.a.s.c.SolrCore [products] Registered new searcher Searcher@39ca3634[products] main{ExitableDirectoryReader(UninvertingDirectoryReader())}
+2016-02-08 23:27:18.851 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateLog Looking up max value of version field to seed version buckets
+2016-02-08 23:27:18.851 INFO  (qtp59559151-16) [   x:products] o.a.s.u.VersionInfo Refreshing highest value of _version_ for 65536 version buckets from index
+2016-02-08 23:27:18.851 INFO  (qtp59559151-16) [   x:products] o.a.s.u.VersionInfo No terms found for _version_, cannot seed version bucket highest value from index
+2016-02-08 23:27:18.852 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateLog Could not find max version in index or recent updates, using new clock 1525650857762226176
+2016-02-08 23:27:18.854 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateLog Took 3 ms to seed version buckets with highest version 1525650857762226176
+2016-02-08 23:27:18.854 INFO  (qtp59559151-16) [   x:products] o.a.s.c.CoreContainer registering core: products
+2016-02-08 23:27:18.856 INFO  (qtp59559151-16) [   x:products] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974038329} status=0 QTime=515 
+2016-02-08 23:27:18.871 INFO  (qtp59559151-18) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974038860} status=0 QTime=1 
+2016-02-08 23:27:18.937 INFO  (qtp59559151-16) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974038893} status=0 QTime=0 
+2016-02-08 23:27:23.583 ERROR (qtp59559151-17) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.menu-top.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.menu-top.html]
+2016-02-08 23:27:23.584 INFO  (qtp59559151-17) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.menu-top.html&contentType=text/html;charset%3Dutf-8&_=1454974043572} status=404 QTime=1 
+2016-02-08 23:27:23.590 ERROR (qtp59559151-16) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.menu-bottom.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.menu-bottom.html]
+2016-02-08 23:27:23.590 INFO  (qtp59559151-16) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.menu-bottom.html&contentType=text/html;charset%3Dutf-8&_=1454974043572} status=404 QTime=0 
+2016-02-08 23:27:23.618 INFO  (qtp59559151-20) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/luke params={show=index&numTerms=0&wt=json&_=1454974043601} status=0 QTime=0 
+2016-02-08 23:27:23.626 INFO  (qtp59559151-17) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/replication params={wt=json&command=details&_=1454974043603} status=0 QTime=1 
+2016-02-08 23:27:23.634 INFO  (qtp59559151-16) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/system params={wt=json&_=1454974043604} status=0 QTime=2 
+2016-02-08 23:27:23.639 ERROR (qtp59559151-18) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.html]
+2016-02-08 23:27:23.639 INFO  (qtp59559151-18) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.html&_=1454974043605} status=404 QTime=0 
+2016-02-08 23:27:23.647 INFO  (qtp59559151-14) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/ping params={action=status&wt=json&_=1454974043605} status=503 QTime=0 
+2016-02-08 23:27:27.984 INFO  (qtp59559151-17) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/select params={q=*:*&indent=true&wt=json&_=1454974047961} hits=0 status=0 QTime=12 
+2016-02-08 23:28:41.903 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateHandler start commit{,optimize=false,openSearcher=true,waitSearcher=true,expungeDeletes=false,softCommit=false,prepareCommit=false}
+2016-02-08 23:28:42.088 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore SolrDeletionPolicy.onCommit: commits: num=2
+	commit{dir=NRTCachingDirectory(MMapDirectory@/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index lockFactory=org.apache.lucene.store.NativeFSLockFactory@7b004064; maxCacheMB=48.0 maxMergeSizeMB=4.0),segFN=segments_1,generation=1}
+	commit{dir=NRTCachingDirectory(MMapDirectory@/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index lockFactory=org.apache.lucene.store.NativeFSLockFactory@7b004064; maxCacheMB=48.0 maxMergeSizeMB=4.0),segFN=segments_2,generation=2}
+2016-02-08 23:28:42.089 INFO  (qtp59559151-16) [   x:products] o.a.s.c.SolrCore newest commit generation = 2
+2016-02-08 23:28:42.101 INFO  (qtp59559151-16) [   x:products] o.a.s.s.SolrIndexSearcher Opening Searcher@ffeed08[products] main
+2016-02-08 23:28:42.101 INFO  (qtp59559151-16) [   x:products] o.a.s.u.UpdateHandler end_commit_flush
+2016-02-08 23:28:42.102 INFO  (searcherExecutor-7-thread-1-processing-x:products) [   x:products] o.a.s.c.SolrCore [products] Registered new searcher Searcher@ffeed08[products] main{ExitableDirectoryReader(UninvertingDirectoryReader(Uninverting(_0(5.3.3):C3226)))}
+2016-02-08 23:28:42.102 INFO  (qtp59559151-16) [   x:products] o.a.s.u.p.LogUpdateProcessor [products] webapp=/solr path=/update params={commit=true} {add=[http://www.google.com/base/feeds/snippets/11125907881740407428 (1525650944527695872), http://www.google.com/base/feeds/snippets/11538923464407758599 (1525650944551813120), http://www.google.com/base/feeds/snippets/11343515411965421256 (1525650944552861696), http://www.google.com/base/feeds/snippets/12049235575237146821 (1525650944553910272), http://www.google.com/base/feeds/snippets/12244614697089679523 (1525650944553910273), http://www.google.com/base/feeds/snippets/12311932123270766595 (1525650944554958848), http://www.google.com/base/feeds/snippets/13364214809208487698 (1525650944554958849), http://www.google.com/base/feeds/snippets/12835181529749808477 (1525650944556007424), http://www.google.com/base/feeds/snippets/12949835105262366018 (1525650944556007425), http://www.google.com/base/feeds/snippets/12991998923940483779 (1525650944557056000), ... (3226 adds)],commit=} 0 511
+2016-02-08 23:29:26.645 INFO  (qtp59559151-16) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/select params={q=*&wt=json} hits=3226 status=0 QTime=3 
+2016-02-08 23:29:38.024 INFO  (qtp59559151-18) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/select params={q=*&wt=json} hits=3226 status=0 QTime=0 
+2016-02-08 23:40:10.899 INFO  (ShutdownMonitor) [   ] o.e.j.s.ServerConnector Stopped ServerConnector@6340e5f0{HTTP/1.1}{0.0.0.0:8983}
+2016-02-08 23:40:10.900 INFO  (ShutdownMonitor) [   ] o.a.s.c.CoreContainer Shutting down CoreContainer instance=576020159
+2016-02-08 23:40:10.900 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.SolrCore [products]  CLOSING SolrCore org.apache.solr.core.SolrCore@7ddd4761
+2016-02-08 23:40:10.904 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.UpdateHandler closing DirectUpdateHandler2{commits=1,autocommit maxTime=15000ms,autocommits=0,soft autocommits=0,optimizes=0,rollbacks=0,expungeDeletes=0,docsPending=0,adds=0,deletesById=0,deletesByQuery=0,errors=0,cumulative_adds=3226,cumulative_deletesById=0,cumulative_deletesByQuery=0,cumulative_errors=0,transaction_logs_total_size=1181591,transaction_logs_total_number=1}
+2016-02-08 23:40:10.905 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.SolrCoreState Closing SolrCoreState
+2016-02-08 23:40:10.905 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.DefaultSolrCoreState SolrCoreState ref count has reached 0 - closing IndexWriter
+2016-02-08 23:40:10.905 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.DefaultSolrCoreState closing IndexWriter with IndexWriterCloser
+2016-02-08 23:40:10.906 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.SolrCore [products] Closing main searcher on request.
+2016-02-08 23:40:10.907 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing NRTCachingDirectoryFactory - 2 directories currently being tracked
+2016-02-08 23:40:10.907 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory looking to close /home/jadams/projects/eezy/solr-redis-xjoin-example/blog [CachedDir<<refCount=0;path=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog;done=false>>]
+2016-02-08 23:40:10.907 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog
+2016-02-08 23:40:10.907 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory looking to close /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index [CachedDir<<refCount=0;path=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index;done=false>>]
+2016-02-08 23:40:10.907 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+2016-02-08 23:40:10.908 INFO  (ShutdownMonitor) [   x:products] o.e.j.s.h.ContextHandler Stopped o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,UNAVAILABLE}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp}

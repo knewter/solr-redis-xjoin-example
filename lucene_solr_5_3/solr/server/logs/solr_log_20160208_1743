@@ -1,0 +1,404 @@
+2016-02-08 23:40:24.141 INFO  (main) [   ] o.e.j.u.log Logging initialized @134ms
+2016-02-08 23:40:24.218 INFO  (main) [   ] o.e.j.s.Server jetty-9.2.11.v20150529
+2016-02-08 23:40:24.225 WARN  (main) [   ] o.e.j.s.h.RequestLogHandler !RequestLog
+2016-02-08 23:40:24.226 INFO  (main) [   ] o.e.j.d.p.ScanningAppProvider Deployment monitor [file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/contexts/] at interval 0
+2016-02-08 23:40:24.394 INFO  (main) [   ] o.e.j.w.StandardDescriptorProcessor NO JSP Support for /solr, did not find org.apache.jasper.servlet.JspServlet
+2016-02-08 23:40:24.399 WARN  (main) [   ] o.e.j.s.SecurityHandler ServletContext@o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,STARTING}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp} has uncovered http methods for path: /
+2016-02-08 23:40:24.402 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter SolrDispatchFilter.init(): WebAppClassLoader=1459672753@5700d6b1
+2016-02-08 23:40:24.409 INFO  (main) [   ] o.a.s.c.SolrResourceLoader JNDI not configured for solr (NoInitialContextEx)
+2016-02-08 23:40:24.409 INFO  (main) [   ] o.a.s.c.SolrResourceLoader using system property solr.solr.home: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:40:24.411 INFO  (main) [   ] o.a.s.c.SolrResourceLoader new SolrResourceLoader for directory: '/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/'
+2016-02-08 23:40:24.476 INFO  (main) [   ] o.a.s.c.SolrXmlConfig Loading container configuration from /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/solr.xml
+2016-02-08 23:40:24.509 INFO  (main) [   ] o.a.s.c.CoresLocator Config-defined core root directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:40:24.519 INFO  (main) [   ] o.a.s.c.CoreContainer New CoreContainer 576020159
+2016-02-08 23:40:24.519 INFO  (main) [   ] o.a.s.c.CoreContainer Loading cores into CoreContainer [instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/]
+2016-02-08 23:40:24.519 INFO  (main) [   ] o.a.s.c.CoreContainer loading shared library: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/lib
+2016-02-08 23:40:24.520 WARN  (main) [   ] o.a.s.c.SolrResourceLoader Can't find (or read) directory to add to classloader: lib (resolved as: /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr/lib).
+2016-02-08 23:40:24.527 INFO  (main) [   ] o.a.s.h.c.HttpShardHandlerFactory created with socketTimeout : 600000,connTimeout : 60000,maxConnectionsPerHost : 20,maxConnections : 10000,corePoolSize : 0,maximumPoolSize : 2147483647,maxThreadIdleTime : 5,sizeOfQueue : -1,fairnessPolicy : false,useRetries : false,
+2016-02-08 23:40:24.622 INFO  (main) [   ] o.a.s.u.UpdateShardHandler Creating UpdateShardHandler HTTP client with params: socketTimeout=600000&connTimeout=60000&retry=true
+2016-02-08 23:40:24.623 INFO  (main) [   ] o.a.s.l.LogWatcher SLF4J impl is org.slf4j.impl.Log4jLoggerFactory
+2016-02-08 23:40:24.624 INFO  (main) [   ] o.a.s.l.LogWatcher Registering Log Listener [Log4j (org.slf4j.impl.Log4jLoggerFactory)]
+2016-02-08 23:40:24.625 INFO  (main) [   ] o.a.s.c.CoreContainer Security conf doesn't exist. Skipping setup for authorization module.
+2016-02-08 23:40:24.625 INFO  (main) [   ] o.a.s.c.CoreContainer No authentication plugin used.
+2016-02-08 23:40:24.802 INFO  (main) [   ] o.a.s.c.CoresLocator Looking for core definitions underneath /home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr
+2016-02-08 23:40:24.803 INFO  (main) [   ] o.a.s.c.CoresLocator Found 0 core definitions
+2016-02-08 23:40:24.805 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter user.dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server
+2016-02-08 23:40:24.805 INFO  (main) [   ] o.a.s.s.SolrDispatchFilter SolrDispatchFilter.init() done
+2016-02-08 23:40:24.811 INFO  (main) [   ] o.e.j.s.h.ContextHandler Started o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,AVAILABLE}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp}
+2016-02-08 23:40:24.815 INFO  (main) [   ] o.e.j.s.ServerConnector Started ServerConnector@6340e5f0{HTTP/1.1}{0.0.0.0:8983}
+2016-02-08 23:40:24.816 INFO  (main) [   ] o.e.j.s.Server Started @809ms
+2016-02-08 23:40:52.966 INFO  (qtp59559151-30) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1454974852936} status=0 QTime=15 
+2016-02-08 23:40:53.000 INFO  (qtp59559151-32) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/info/system params={wt=json&_=1454974852983} status=0 QTime=7 
+2016-02-08 23:40:56.497 INFO  (qtp59559151-19) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1454974856481} status=0 QTime=0 
+2016-02-08 23:40:56.527 INFO  (qtp59559151-29) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/info/system params={wt=json&_=1454974856512} status=0 QTime=2 
+2016-02-08 23:40:58.075 INFO  (qtp59559151-20) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974858064} status=0 QTime=0 
+2016-02-08 23:41:17.541 INFO  (qtp59559151-32) [   ] o.a.s.h.a.CoreAdminHandler core create command schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974877528
+2016-02-08 23:41:17.543 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrCore Created CoreDescriptor: {name=products, config=solrconfig.xml, transient=false, schema=schema.xml, loadOnStartup=true, configSetProperties=configsetprops.json, instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog, absoluteInstDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/, dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog}
+2016-02-08 23:41:17.543 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrResourceLoader new SolrResourceLoader for directory: '/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/'
+2016-02-08 23:41:17.562 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrConfig current version of requestparams : -1
+2016-02-08 23:41:17.563 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrConfig Adding specified lib dirs to ClassLoader
+2016-02-08 23:41:17.564 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrResourceLoader Adding 'file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/contrib/xjoin/lib/commons-collections-3.2.2.jar' to classloader
+2016-02-08 23:41:17.564 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrResourceLoader Adding 'file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/dist/solr-xjoin-5.3.3-SNAPSHOT.jar' to classloader
+2016-02-08 23:41:17.564 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrResourceLoader Adding 'file:/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/javax.json-1.0.4.jar' to classloader
+2016-02-08 23:41:17.565 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrResourceLoader Adding 'file:/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/offer.jar' to classloader
+2016-02-08 23:41:17.578 INFO  (qtp59559151-32) [   ] o.a.s.u.SolrIndexConfig IndexWriter infoStream solr logging is enabled
+2016-02-08 23:41:17.580 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrConfig Using Lucene MatchVersion: 5.3.3
+2016-02-08 23:41:17.611 INFO  (qtp59559151-32) [   ] o.a.s.c.Config Loaded SolrConfig: solrconfig.xml
+2016-02-08 23:41:17.614 INFO  (qtp59559151-32) [   ] o.a.s.s.IndexSchema Reading Solr Schema from /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/schema.xml
+2016-02-08 23:41:17.627 INFO  (qtp59559151-32) [   ] o.a.s.s.IndexSchema [products] Schema name=example
+2016-02-08 23:41:17.734 INFO  (qtp59559151-32) [   ] o.a.s.s.IndexSchema unique key field: id
+2016-02-08 23:41:17.773 INFO  (qtp59559151-32) [   ] o.a.s.s.FileExchangeRateProvider Reloading exchange rates from file currency.xml
+2016-02-08 23:41:17.776 INFO  (qtp59559151-32) [   ] o.a.s.s.FileExchangeRateProvider Reloading exchange rates from file currency.xml
+2016-02-08 23:41:17.779 INFO  (qtp59559151-32) [   ] o.a.s.c.ConfigSetProperties Did not find ConfigSet properties, assuming default properties: Can't find resource 'configsetprops.json' in classpath or '/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf'
+2016-02-08 23:41:17.779 INFO  (qtp59559151-32) [   ] o.a.s.c.CoreContainer Creating SolrCore 'products' using configuration from instancedir /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/
+2016-02-08 23:41:17.779 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore solr.NRTCachingDirectoryFactory
+2016-02-08 23:41:17.785 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore [[products] ] Opening new SolrCore at [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/], dataDir=[null]
+2016-02-08 23:41:17.786 INFO  (qtp59559151-32) [   x:products] o.a.s.c.JmxMonitoredMap No JMX servers found, not exposing Solr information with JMX.
+2016-02-08 23:41:17.793 INFO  (qtp59559151-32) [   x:products] o.a.s.c.CachingDirectoryFactory return new directory for /home/jadams/projects/eezy/solr-redis-xjoin-example/blog
+2016-02-08 23:41:17.793 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore New index directory detected: old=null new=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index/
+2016-02-08 23:41:17.793 INFO  (qtp59559151-32) [   x:products] o.a.s.c.CachingDirectoryFactory return new directory for /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+2016-02-08 23:41:17.800 INFO  (OldIndexDirectoryCleanupThreadForCore-products) [   x:products] o.a.s.c.SolrCore Looking for old index directories to cleanup for core products in /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/
+2016-02-08 23:41:17.836 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore no updateRequestProcessorChain defined as default, creating implicit default
+2016-02-08 23:41:17.851 INFO  (qtp59559151-32) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:41:17.852 INFO  (qtp59559151-32) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:41:17.852 INFO  (qtp59559151-32) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:41:17.852 INFO  (qtp59559151-32) [   x:products] o.a.s.h.l.XMLLoader xsltCacheLifetimeSeconds=60
+2016-02-08 23:41:17.980 INFO  (qtp59559151-32) [   x:products] o.a.s.c.PluginBag requestHandler : '/analysis/field' created with startup=lazy 
+2016-02-08 23:41:17.980 INFO  (qtp59559151-32) [   x:products] o.a.s.c.PluginBag requestHandler : '/analysis/document' created with startup=lazy 
+2016-02-08 23:41:17.981 INFO  (qtp59559151-32) [   x:products] o.a.s.c.PluginBag requestHandler : '/terms' created with startup=lazy 
+2016-02-08 23:41:17.981 INFO  (qtp59559151-32) [   x:products] o.a.s.c.PluginBag requestHandler : '/xjoin' created with startup=lazy 
+2016-02-08 23:41:17.981 INFO  (qtp59559151-32) [   x:products] o.a.s.c.RequestHandlers Registered paths: /admin/mbeans,/update/json/docs,/admin/luke,/export,/get,/xjoin,/admin/properties,/update/json,/admin/threads,/query,/analysis/field,/analysis/document,/update/csv,/select,/admin/segments,/admin/system,/replication,/config,/schema,/admin/plugins,/admin/logging,/admin/ping,/update,/admin/file,/debug/dump,/terms
+2016-02-08 23:41:17.982 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore Using default statsCache cache: org.apache.solr.search.stats.LocalStatsCache
+2016-02-08 23:41:17.986 INFO  (qtp59559151-32) [   x:products] o.a.s.u.UpdateHandler Using UpdateLog implementation: org.apache.solr.update.UpdateLog
+2016-02-08 23:41:17.986 INFO  (qtp59559151-32) [   x:products] o.a.s.u.UpdateLog Initializing UpdateLog: dataDir= defaultSyncLevel=FLUSH numRecordsToKeep=100 maxNumLogsToKeep=10 numVersionBuckets=65536
+2016-02-08 23:41:17.994 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore Hard AutoCommit: if uncommited for 15000ms; 
+2016-02-08 23:41:17.994 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore Soft AutoCommit: disabled
+2016-02-08 23:41:18.013 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore SolrDeletionPolicy.onInit: commits: num=1
+	commit{dir=NRTCachingDirectory(MMapDirectory@/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index lockFactory=org.apache.lucene.store.NativeFSLockFactory@4d09302d; maxCacheMB=48.0 maxMergeSizeMB=4.0),segFN=segments_2,generation=2}
+2016-02-08 23:41:18.013 INFO  (qtp59559151-32) [   x:products] o.a.s.c.SolrCore newest commit generation = 2
+2016-02-08 23:41:18.030 INFO  (qtp59559151-32) [   x:products] o.a.s.s.SolrIndexSearcher Opening Searcher@6bb507a7[products] main
+2016-02-08 23:41:18.032 INFO  (qtp59559151-32) [   x:products] o.a.s.r.ManagedResourceStorage File-based storage initialized to use dir: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:41:18.033 INFO  (qtp59559151-32) [   x:products] o.a.s.r.RestManager Initializing RestManager with initArgs: {storageDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf}
+2016-02-08 23:41:18.036 INFO  (qtp59559151-32) [   x:products] o.a.s.r.ManagedResourceStorage Reading _rest_managed.json using file:dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:41:18.037 INFO  (qtp59559151-32) [   x:products] o.a.s.r.ManagedResourceStorage Loaded LinkedHashMap at path _rest_managed.json using file:dir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf
+2016-02-08 23:41:18.037 INFO  (qtp59559151-32) [   x:products] o.a.s.r.ManagedResource Loaded initArgs {} for /rest/managed
+2016-02-08 23:41:18.037 INFO  (qtp59559151-32) [   x:products] o.a.s.r.RestManager Initializing 0 registered ManagedResources
+2016-02-08 23:41:18.040 INFO  (qtp59559151-32) [   x:products] o.a.s.h.ReplicationHandler Commits will be reserved for  10000
+2016-02-08 23:41:18.041 INFO  (searcherExecutor-7-thread-1-processing-x:products) [   x:products] o.a.s.c.SolrCore [products] Registered new searcher Searcher@6bb507a7[products] main{ExitableDirectoryReader(UninvertingDirectoryReader(Uninverting(_0(5.3.3):C3226)))}
+2016-02-08 23:41:18.041 INFO  (qtp59559151-32) [   x:products] o.a.s.u.UpdateLog Looking up max value of version field to seed version buckets
+2016-02-08 23:41:18.041 INFO  (qtp59559151-32) [   x:products] o.a.s.u.VersionInfo Refreshing highest value of _version_ for 65536 version buckets from index
+2016-02-08 23:41:18.046 INFO  (qtp59559151-32) [   x:products] o.a.s.u.VersionInfo Found MAX value 1525650944848560131 from Terms for _version_ in index
+2016-02-08 23:41:18.049 INFO  (qtp59559151-32) [   x:products] o.a.s.u.UpdateLog Took 8 ms to seed version buckets with highest version 1525650944848560131
+2016-02-08 23:41:18.049 INFO  (qtp59559151-32) [   x:products] o.a.s.c.CoreContainer registering core: products
+2016-02-08 23:41:18.050 ERROR (qtp59559151-32) [   x:products] o.a.s.c.SolrCore org.apache.solr.common.SolrException: Error CREATEing SolrCore 'products': Could not create a new core in /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/as another core is already defined there
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleCreateAction(CoreAdminHandler.java:664)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestInternal(CoreAdminHandler.java:214)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestBody(CoreAdminHandler.java:194)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.servlet.HttpSolrCall.handleAdminRequest(HttpSolrCall.java:678)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:444)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: org.apache.solr.common.SolrException: Could not create a new core in /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/as another core is already defined there
+	at org.apache.solr.core.CorePropertiesLocator.create(CorePropertiesLocator.java:60)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleCreateAction(CoreAdminHandler.java:632)
+	... 27 more
+
+2016-02-08 23:41:18.050 INFO  (qtp59559151-32) [   x:products] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974877528} status=400 QTime=509 
+2016-02-08 23:42:26.634 INFO  (qtp59559151-32) [   ] o.a.s.h.a.CoreAdminHandler core create command schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974946623
+2016-02-08 23:42:26.635 INFO  (qtp59559151-32) [   ] o.a.s.c.SolrCore Created CoreDescriptor: {name=products, config=solrconfig.xml, transient=false, schema=schema.xml, loadOnStartup=true, configSetProperties=configsetprops.json, instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog, absoluteInstDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/, dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog}
+2016-02-08 23:42:26.635 WARN  (qtp59559151-32) [   ] o.a.s.h.a.CoreAdminHandler Creating a core with existing name is not allowed
+2016-02-08 23:42:26.635 ERROR (qtp59559151-32) [   ] o.a.s.c.SolrCore org.apache.solr.common.SolrException: Core with name 'products' already exists.
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleCreateAction(CoreAdminHandler.java:610)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestInternal(CoreAdminHandler.java:214)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestBody(CoreAdminHandler.java:194)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.servlet.HttpSolrCall.handleAdminRequest(HttpSolrCall.java:678)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:444)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+
+2016-02-08 23:42:26.635 INFO  (qtp59559151-32) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={schema=schema.xml&dataDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&name=products&indexInfo=false&action=CREATE&collection=&shard=&wt=json&instanceDir=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog&config=solrconfig.xml&_=1454974946623} status=500 QTime=0 
+2016-02-08 23:42:26.635 ERROR (qtp59559151-32) [   ] o.a.s.s.SolrDispatchFilter null:org.apache.solr.common.SolrException: Core with name 'products' already exists.
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleCreateAction(CoreAdminHandler.java:610)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestInternal(CoreAdminHandler.java:214)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestBody(CoreAdminHandler.java:194)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.servlet.HttpSolrCall.handleAdminRequest(HttpSolrCall.java:678)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:444)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+
+2016-02-08 23:42:30.204 INFO  (qtp59559151-40) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1454974950192} status=0 QTime=0 
+2016-02-08 23:42:30.245 INFO  (qtp59559151-20) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/info/system params={wt=json&_=1454974950233} status=0 QTime=2 
+2016-02-08 23:42:30.263 ERROR (qtp59559151-39) [   ] o.a.s.h.a.CoreAdminHandler IO error while trying to get the size of the Directory:java.nio.file.NoSuchFileException: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newDirectoryStream(UnixFileSystemProvider.java:427)
+	at java.nio.file.Files.newDirectoryStream(Files.java:457)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:179)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:191)
+	at org.apache.lucene.store.NRTCachingDirectory.listAll(NRTCachingDirectory.java:101)
+	at org.apache.solr.core.DirectoryFactory.sizeOfDirectory(DirectoryFactory.java:212)
+	at org.apache.solr.handler.admin.CoreAdminHandler.getIndexSize(CoreAdminHandler.java:1196)
+	at org.apache.solr.handler.admin.CoreAdminHandler.getCoreStatus(CoreAdminHandler.java:1174)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleStatusAction(CoreAdminHandler.java:737)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestInternal(CoreAdminHandler.java:229)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestBody(CoreAdminHandler.java:194)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.servlet.HttpSolrCall.handleAdminRequest(HttpSolrCall.java:678)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:444)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+
+2016-02-08 23:42:30.264 INFO  (qtp59559151-39) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974950252} status=0 QTime=1 
+2016-02-08 23:42:30.286 ERROR (qtp59559151-15) [   ] o.a.s.h.a.CoreAdminHandler IO error while trying to get the size of the Directory:java.nio.file.NoSuchFileException: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newDirectoryStream(UnixFileSystemProvider.java:427)
+	at java.nio.file.Files.newDirectoryStream(Files.java:457)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:179)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:191)
+	at org.apache.lucene.store.NRTCachingDirectory.listAll(NRTCachingDirectory.java:101)
+	at org.apache.solr.core.DirectoryFactory.sizeOfDirectory(DirectoryFactory.java:212)
+	at org.apache.solr.handler.admin.CoreAdminHandler.getIndexSize(CoreAdminHandler.java:1196)
+	at org.apache.solr.handler.admin.CoreAdminHandler.getCoreStatus(CoreAdminHandler.java:1174)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleStatusAction(CoreAdminHandler.java:737)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestInternal(CoreAdminHandler.java:229)
+	at org.apache.solr.handler.admin.CoreAdminHandler.handleRequestBody(CoreAdminHandler.java:194)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.servlet.HttpSolrCall.handleAdminRequest(HttpSolrCall.java:678)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:444)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+
+2016-02-08 23:42:30.286 INFO  (qtp59559151-15) [   ] o.a.s.s.SolrDispatchFilter [admin] webapp=null path=/admin/cores params={wt=json&_=1454974950276} status=0 QTime=0 
+2016-02-08 23:42:31.921 ERROR (qtp59559151-29) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.menu-top.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.menu-top.html]
+2016-02-08 23:42:31.921 INFO  (qtp59559151-29) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.menu-top.html&contentType=text/html;charset%3Dutf-8&_=1454974951909} status=404 QTime=1 
+2016-02-08 23:42:31.929 ERROR (qtp59559151-43) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.menu-bottom.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.menu-bottom.html]
+2016-02-08 23:42:31.929 INFO  (qtp59559151-43) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.menu-bottom.html&contentType=text/html;charset%3Dutf-8&_=1454974951909} status=404 QTime=0 
+2016-02-08 23:42:31.951 INFO  (qtp59559151-42) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/luke params={show=index&numTerms=0&wt=json&_=1454974951938} status=0 QTime=0 
+2016-02-08 23:42:31.958 ERROR (qtp59559151-20) [   x:products] o.a.s.h.ReplicationHandler IO error while trying to get the size of the Directory:java.nio.file.NoSuchFileException: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newDirectoryStream(UnixFileSystemProvider.java:427)
+	at java.nio.file.Files.newDirectoryStream(Files.java:457)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:179)
+	at org.apache.lucene.store.FSDirectory.listAll(FSDirectory.java:191)
+	at org.apache.lucene.store.NRTCachingDirectory.listAll(NRTCachingDirectory.java:101)
+	at org.apache.solr.core.DirectoryFactory.sizeOfDirectory(DirectoryFactory.java:212)
+	at org.apache.solr.handler.ReplicationHandler.getIndexSize(ReplicationHandler.java:705)
+	at org.apache.solr.handler.ReplicationHandler.getReplicationDetails(ReplicationHandler.java:793)
+	at org.apache.solr.handler.ReplicationHandler.handleRequestBody(ReplicationHandler.java:305)
+	at org.apache.solr.handler.RequestHandlerBase.handleRequest(RequestHandlerBase.java:143)
+	at org.apache.solr.core.SolrCore.execute(SolrCore.java:2068)
+	at org.apache.solr.servlet.HttpSolrCall.execute(HttpSolrCall.java:672)
+	at org.apache.solr.servlet.HttpSolrCall.call(HttpSolrCall.java:463)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:215)
+	at org.apache.solr.servlet.SolrDispatchFilter.doFilter(SolrDispatchFilter.java:179)
+	at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1652)
+	at org.eclipse.jetty.servlet.ServletHandler.doHandle(ServletHandler.java:585)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:143)
+	at org.eclipse.jetty.security.SecurityHandler.handle(SecurityHandler.java:577)
+	at org.eclipse.jetty.server.session.SessionHandler.doHandle(SessionHandler.java:223)
+	at org.eclipse.jetty.server.handler.ContextHandler.doHandle(ContextHandler.java:1127)
+	at org.eclipse.jetty.servlet.ServletHandler.doScope(ServletHandler.java:515)
+	at org.eclipse.jetty.server.session.SessionHandler.doScope(SessionHandler.java:185)
+	at org.eclipse.jetty.server.handler.ContextHandler.doScope(ContextHandler.java:1061)
+	at org.eclipse.jetty.server.handler.ScopedHandler.handle(ScopedHandler.java:141)
+	at org.eclipse.jetty.server.handler.ContextHandlerCollection.handle(ContextHandlerCollection.java:215)
+	at org.eclipse.jetty.server.handler.HandlerCollection.handle(HandlerCollection.java:110)
+	at org.eclipse.jetty.server.handler.HandlerWrapper.handle(HandlerWrapper.java:97)
+	at org.eclipse.jetty.server.Server.handle(Server.java:499)
+	at org.eclipse.jetty.server.HttpChannel.handle(HttpChannel.java:310)
+	at org.eclipse.jetty.server.HttpConnection.onFillable(HttpConnection.java:257)
+	at org.eclipse.jetty.io.AbstractConnection$2.run(AbstractConnection.java:540)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:635)
+	at org.eclipse.jetty.util.thread.QueuedThreadPool$3.run(QueuedThreadPool.java:555)
+	at java.lang.Thread.run(Thread.java:745)
+
+2016-02-08 23:42:31.959 INFO  (qtp59559151-20) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/replication params={wt=json&command=details&_=1454974951941} status=0 QTime=1 
+2016-02-08 23:42:31.968 INFO  (qtp59559151-39) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/system params={wt=json&_=1454974951941} status=0 QTime=2 
+2016-02-08 23:42:31.974 ERROR (qtp59559151-15) [   x:products] o.a.s.h.a.ShowFileRequestHandler Can not find: admin-extra.html [/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/conf/admin-extra.html]
+2016-02-08 23:42:31.974 INFO  (qtp59559151-15) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/file params={file=admin-extra.html&_=1454974951942} status=404 QTime=0 
+2016-02-08 23:42:31.982 INFO  (qtp59559151-41) [   x:products] o.a.s.c.S.Request [products] webapp=/solr path=/admin/ping params={action=status&wt=json&_=1454974951943} status=503 QTime=0 
+2016-02-08 23:42:54.971 INFO  (ShutdownMonitor) [   ] o.e.j.s.ServerConnector Stopped ServerConnector@6340e5f0{HTTP/1.1}{0.0.0.0:8983}
+2016-02-08 23:42:54.972 INFO  (ShutdownMonitor) [   ] o.a.s.c.CoreContainer Shutting down CoreContainer instance=576020159
+2016-02-08 23:42:54.972 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.SolrCore [products]  CLOSING SolrCore org.apache.solr.core.SolrCore@6b323347
+2016-02-08 23:42:54.972 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.UpdateHandler closing DirectUpdateHandler2{commits=0,autocommit maxTime=15000ms,autocommits=0,soft autocommits=0,optimizes=0,rollbacks=0,expungeDeletes=0,docsPending=0,adds=0,deletesById=0,deletesByQuery=0,errors=0,cumulative_adds=0,cumulative_deletesById=0,cumulative_deletesByQuery=0,cumulative_errors=0,transaction_logs_total_size=0,transaction_logs_total_number=1}
+2016-02-08 23:42:54.973 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.SolrCoreState Closing SolrCoreState
+2016-02-08 23:42:54.973 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.DefaultSolrCoreState SolrCoreState ref count has reached 0 - closing IndexWriter
+2016-02-08 23:42:54.973 INFO  (ShutdownMonitor) [   x:products] o.a.s.u.DefaultSolrCoreState closing IndexWriter with IndexWriterCloser
+2016-02-08 23:42:54.975 ERROR (ShutdownMonitor) [   x:products] o.a.s.u.SolrIndexWriter Error closing IndexWriter
+java.nio.file.NoSuchFileException: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixPath.toRealPath(UnixPath.java:837)
+	at org.apache.lucene.util.IOUtils.spins(IOUtils.java:465)
+	at org.apache.lucene.util.IOUtils.spins(IOUtils.java:448)
+	at org.apache.lucene.index.ConcurrentMergeScheduler.initDynamicDefaults(ConcurrentMergeScheduler.java:376)
+	at org.apache.lucene.index.ConcurrentMergeScheduler.merge(ConcurrentMergeScheduler.java:464)
+	at org.apache.lucene.index.IndexWriter.waitForMerges(IndexWriter.java:2288)
+	at org.apache.lucene.index.IndexWriter.shutdown(IndexWriter.java:1079)
+	at org.apache.lucene.index.IndexWriter.close(IndexWriter.java:1123)
+	at org.apache.solr.update.SolrIndexWriter.close(SolrIndexWriter.java:130)
+	at org.apache.solr.update.DirectUpdateHandler2.closeWriter(DirectUpdateHandler2.java:798)
+	at org.apache.solr.update.DefaultSolrCoreState.closeIndexWriter(DefaultSolrCoreState.java:78)
+	at org.apache.solr.update.DefaultSolrCoreState.close(DefaultSolrCoreState.java:379)
+	at org.apache.solr.update.SolrCoreState.decrefSolrCoreState(SolrCoreState.java:73)
+	at org.apache.solr.core.SolrCore.close(SolrCore.java:1208)
+	at org.apache.solr.core.SolrCores.close(SolrCores.java:124)
+	at org.apache.solr.core.CoreContainer.shutdown(CoreContainer.java:562)
+	at org.apache.solr.servlet.SolrDispatchFilter.destroy(SolrDispatchFilter.java:172)
+	at org.eclipse.jetty.servlet.FilterHolder.destroyInstance(FilterHolder.java:173)
+	at org.eclipse.jetty.servlet.FilterHolder.doStop(FilterHolder.java:151)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.servlet.ServletHandler.doStop(ServletHandler.java:230)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.security.SecurityHandler.doStop(SecurityHandler.java:411)
+	at org.eclipse.jetty.security.ConstraintSecurityHandler.doStop(ConstraintSecurityHandler.java:457)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.server.session.SessionHandler.doStop(SessionHandler.java:127)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.server.handler.ContextHandler.doStop(ContextHandler.java:835)
+	at org.eclipse.jetty.servlet.ServletContextHandler.doStop(ServletContextHandler.java:215)
+	at org.eclipse.jetty.webapp.WebAppContext.doStop(WebAppContext.java:529)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.stop(ContainerLifeCycle.java:143)
+	at org.eclipse.jetty.util.component.ContainerLifeCycle.doStop(ContainerLifeCycle.java:162)
+	at org.eclipse.jetty.server.handler.AbstractHandler.doStop(AbstractHandler.java:73)
+	at org.eclipse.jetty.server.Server.doStop(Server.java:456)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.stop(AbstractLifeCycle.java:89)
+	at org.eclipse.jetty.server.ShutdownMonitor$ShutdownMonitorRunnable.run(ShutdownMonitor.java:137)
+	at java.lang.Thread.run(Thread.java:745)
+2016-02-08 23:42:54.976 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.SolrCore [products] Closing main searcher on request.
+2016-02-08 23:42:54.977 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing NRTCachingDirectoryFactory - 2 directories currently being tracked
+2016-02-08 23:42:54.978 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory looking to close /home/jadams/projects/eezy/solr-redis-xjoin-example/blog [CachedDir<<refCount=0;path=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog;done=false>>]
+2016-02-08 23:42:54.978 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog
+2016-02-08 23:42:54.978 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory looking to close /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index [CachedDir<<refCount=0;path=/home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index;done=false>>]
+2016-02-08 23:42:54.978 INFO  (ShutdownMonitor) [   x:products] o.a.s.c.CachingDirectoryFactory Closing directory: /home/jadams/projects/eezy/solr-redis-xjoin-example/blog/index
+2016-02-08 23:42:54.979 INFO  (ShutdownMonitor) [   x:products] o.e.j.s.h.ContextHandler Stopped o.e.j.w.WebAppContext@204f30ec{/solr,file:/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp/,UNAVAILABLE}{/home/jadams/projects/eezy/solr-redis-xjoin-example/lucene_solr_5_3/solr/server/solr-webapp/webapp}
